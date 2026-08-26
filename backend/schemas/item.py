@@ -10,4 +10,7 @@ class ItemCreate(BaseModel):           # entrada (POST/PUT)
 class ItemResponse(ItemCreate):        # saída (GET)
     id: int
 
-    model_config = {"from_attributes": True}  # permite ler ORM objects
+    model_config = {
+        "from_attributes": True,
+        "revalidate_instances": "never"  # não revalida dados vindos do banco
+    }
