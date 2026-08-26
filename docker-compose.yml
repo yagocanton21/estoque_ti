@@ -5,4 +5,5 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./estoque.db:/app/estoque.db 
+      - ./estoque.db:/app/estoque.db
+      - .:/app
