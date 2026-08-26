@@ -10,6 +10,13 @@ router = APIRouter(prefix="/itens", tags=["Itens"])
 def listar_itens(db: Session = Depends(get_db)):
     return db.query(Item).all()
 
+@router.get("/{id}", response_model=ItemResponse)
+def buscar_item(id: int, db: Session = Depends(get_db)):
+    db_item = db.query(Item).filter(Item.id == id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+    return db_item
+
 @router.post("/", response_model=ItemResponse, status_code=201)
 def cadastrar_item(item: ItemCreate, db: Session = Depends(get_db)):
     novo_item = Item(**item.model_dump())
@@ -31,8 +38,12 @@ def atualizar_item(id: int, item: ItemCreate, db: Session = Depends(get_db)):
 
 @router.delete("/{id}", status_code=204)
 def deletar_item(id: int, db: Session = Depends(get_db)):
+    from models.movimentacao import Movimentacao
     db_item = db.query(Item).filter(Item.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
+    tem_movimentacoes = db.query(Movimentacao).filter(Movimentacao.item_id == id).first()
+    if tem_movimentacoes:
+        raise HTTPException(status_code=409, detail="Item possui movimentações registradas e não pode ser deletado")
     db.delete(db_item)
     db.commit()
