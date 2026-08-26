@@ -1,0 +1,26 @@
+# Banco de dados (montado via volume)
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Ambientes virtuais
+venv/
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
