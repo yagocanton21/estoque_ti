@@ -4,6 +4,7 @@ from database import get_db
 from models.item import Item
 from models.movimentacao import Movimentacao
 from schemas.movimentacao import MovimentacaoCreate, MovimentacaoResponse
+from services.estoque import checar_estoque_minimo_e_alertar
 
 router = APIRouter(prefix="/movimentacoes", tags=["Movimentações"])
 
@@ -30,12 +31,13 @@ def registrar_movimentacao(mov: MovimentacaoCreate, db: Session = Depends(get_db
     nova_mov = Movimentacao(**mov.model_dump())
     db.add(item)
     db.add(nova_mov)
-    db.commit()
-    db.refresh(nova_mov)
 
     alerta = None
-    if mov.tipo == "saida" and item.quantidade_minima and item.quantidade < item.quantidade_minima:
-        alerta = f"Estoque abaixo do mínimo! Atual: {item.quantidade}, Mínimo: {item.quantidade_minima}"
+    if mov.tipo == "saida":
+        alerta = checar_estoque_minimo_e_alertar(db, item)
+
+    db.commit()
+    db.refresh(nova_mov)
 
     return MovimentacaoResponse(
         id=nova_mov.id,

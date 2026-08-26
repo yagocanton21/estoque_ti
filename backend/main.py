@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database import Base, engine
-from routers import itens, movimentacoes
+from routers import itens, movimentacoes, lista_compras
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,3 +13,4 @@ def status_api():
 
 app.include_router(itens.router)
 app.include_router(movimentacoes.router)
+app.include_router(lista_compras.router)
