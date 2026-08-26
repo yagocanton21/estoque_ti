@@ -1,9 +1,9 @@
 services:
   api:
-    build: .
+    build: ./backend
     restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
       - ./estoque.db:/app/estoque.db
-      - .:/app
+      - ./backend:/app
