@@ -123,6 +123,26 @@ export function ConsultaEstoque() {
     }
   };
 
+  const deletarItem = async () => {
+    if (!edicao) return;
+    if (!window.confirm(`Tem certeza que deseja EXCLUIR o produto "${edicao.nome}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      await axios.delete(`/api/itens/${edicao.id}`);
+      setFeedback({ type: 'success', text: `Produto “${edicao.nome}” excluído com sucesso.` });
+      setEdicao(null);
+      await carregarPagina(page);
+    } catch (error: any) {
+      console.error('Erro ao deletar item:', error);
+      setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível excluir o produto.' });
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
@@ -336,11 +356,16 @@ export function ConsultaEstoque() {
                 </label>
               </div>
 
-              <div className="edit-modal-actions">
-                <button type="button" className="btn btn-outline" onClick={() => setEdicao(null)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={salvando}>
-                  {salvando ? 'Salvando...' : 'Salvar alterações'}
+              <div className="edit-modal-actions" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <button type="button" className="btn btn-outline" style={{ color: '#dc3545', borderColor: '#dc3545' }} onClick={deletarItem} disabled={salvando}>
+                  Excluir Produto
                 </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setEdicao(null)}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary" disabled={salvando}>
+                    {salvando ? 'Salvando...' : 'Salvar alterações'}
+                  </button>
+                </div>
               </div>
             </form>
           </section>
