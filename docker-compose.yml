@@ -2,8 +2,31 @@ services:
   api:
     build: ./backend
     restart: unless-stopped
+    environment:
+      DATABASE_URL: sqlite:////data/estoque.db
     ports:
       - "8000:8000"
     volumes:
-      - ./estoque.db:/app/estoque.db
       - ./backend:/app
+      - ./data:/data
+      - ./backups:/backups
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+  tests:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    environment:
+      DATABASE_URL: sqlite:////tmp/estoque_test.db
+    command: ["pytest", "-q"]

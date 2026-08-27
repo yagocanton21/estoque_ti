@@ -4,7 +4,7 @@ from models.lista_compras import ListaCompras
 
 def checar_estoque_minimo_e_alertar(db: Session, item: Item) -> str | None:
     # 1. Checa se o item tem quantidade mínima e se o estoque atual está abaixo ou igual a ela
-    if not item.quantidade_minima or item.quantidade >= item.quantidade_minima:
+    if not item.quantidade_minima or item.quantidade > item.quantidade_minima:
         return None
         
     # 2. Se caiu aqui, o estoque tá baixo! Vamos ver se já tá na lista de compras

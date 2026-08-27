@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.lista_compras import ListaCompras
 from schemas.lista_compras import ListaComprasCreate, ListaComprasUpdate, ListaComprasResponse
+from datetime import datetime
 
 router = APIRouter(prefix="/lista-compras", tags=["Lista de Compras"])
 
@@ -33,6 +34,14 @@ def atualizar_item_compra(id: int, item: ListaComprasUpdate, db: Session = Depen
     
     # Atualiza apenas os campos enviados, ignorando os que não foram passados (exclude_unset=True)
     update_data = item.model_dump(exclude_unset=True)
+    
+    # Se está marcando como comprado e não estava antes, registra a data
+    if update_data.get("comprado") is True and not db_item.comprado:
+        db_item.data_compra = datetime.utcnow()
+    # Se está desmarcando, apaga a data
+    elif update_data.get("comprado") is False:
+        db_item.data_compra = None
+        
     for campo, valor in update_data.items():
         setattr(db_item, campo, valor)
         

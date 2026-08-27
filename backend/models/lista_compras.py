@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from database import Base
 
 class ListaCompras(Base):
@@ -9,3 +9,5 @@ class ListaCompras(Base):
     nome       = Column(String, nullable=False)
     quantidade = Column(Integer, nullable=False, default=1)
     comprado   = Column(Boolean, nullable=False, default=False)
+    link       = Column(String, nullable=True)
+    data_compra = Column(DateTime, nullable=True)

@@ -3,6 +3,10 @@
 *.db-journal
 *.db-wal
 *.db-shm
+data/
+backups/
+.pytest_cache/
+.coverage
 # Python
 __pycache__/
 *.py[cod]
