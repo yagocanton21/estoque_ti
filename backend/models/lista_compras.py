@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
 from database import Base
 
 class ListaCompras(Base):
@@ -11,3 +12,5 @@ class ListaCompras(Base):
     comprado   = Column(Boolean, nullable=False, default=False)
     link       = Column(String, nullable=True)
     data_compra = Column(DateTime, nullable=True)
+
+    orcamentos = relationship("Orcamento", back_populates="lista_compras", cascade="all, delete-orphan")

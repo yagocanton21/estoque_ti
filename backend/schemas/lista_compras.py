@@ -19,9 +19,12 @@ class ListaComprasUpdate(BaseModel):
     link: Optional[str] = None
     data_compra: Optional[datetime] = None
 
+from schemas.orcamento import OrcamentoResponse
+
 class ListaComprasResponse(ListaComprasBase):
     id: int
     data_compra: Optional[datetime] = None
+    orcamentos: list[OrcamentoResponse] = []
 
     model_config = {"from_attributes": True}
 

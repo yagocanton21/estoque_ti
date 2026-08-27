@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.lista_compras import ListaCompras
 from schemas.lista_compras import ListaComprasCreate, ListaComprasUpdate, ListaComprasResponse, PaginatedListaComprasResponse
+from schemas.orcamento import OrcamentoCreate, OrcamentoUpdate, OrcamentoResponse
+from models.orcamento import Orcamento
 from datetime import datetime
 
 router = APIRouter(prefix="/lista-compras", tags=["Lista de Compras"])
@@ -62,4 +64,38 @@ def deletar_item_compra(id: int, db: Session = Depends(get_db)):
     if not db_item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
     db.delete(db_item)
+    db.commit()
+
+@router.post("/{id}/orcamentos", response_model=OrcamentoResponse, status_code=201)
+def adicionar_orcamento(id: int, orcamento: OrcamentoCreate, db: Session = Depends(get_db)):
+    lista_item = db.query(ListaCompras).filter(ListaCompras.id == id).first()
+    if not lista_item:
+        raise HTTPException(status_code=404, detail="Item da lista de compras não encontrado")
+    
+    novo_orcamento = Orcamento(**orcamento.model_dump(), lista_compras_id=id)
+    db.add(novo_orcamento)
+    db.commit()
+    db.refresh(novo_orcamento)
+    return novo_orcamento
+
+@router.put("/orcamentos/{orcamento_id}", response_model=OrcamentoResponse)
+def atualizar_orcamento(orcamento_id: int, orcamento: OrcamentoUpdate, db: Session = Depends(get_db)):
+    db_orc = db.query(Orcamento).filter(Orcamento.id == orcamento_id).first()
+    if not db_orc:
+        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+    
+    update_data = orcamento.model_dump(exclude_unset=True)
+    for campo, valor in update_data.items():
+        setattr(db_orc, campo, valor)
+    
+    db.commit()
+    db.refresh(db_orc)
+    return db_orc
+
+@router.delete("/orcamentos/{orcamento_id}", status_code=204)
+def deletar_orcamento(orcamento_id: int, db: Session = Depends(get_db)):
+    db_orc = db.query(Orcamento).filter(Orcamento.id == orcamento_id).first()
+    if not db_orc:
+        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+    db.delete(db_orc)
     db.commit()

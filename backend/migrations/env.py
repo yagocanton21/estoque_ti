@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from database import Base, SQLALCHEMY_DATABASE_URL
-from models import emprestimo, item, lista_compras, movimentacao  # noqa: F401
+from models import emprestimo, item, lista_compras, movimentacao, orcamento  # noqa: F401
 
 config = context.config
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { ModalOrcamento } from './ModalOrcamento';
 
 interface ListaComprasItem {
   id: number;
@@ -28,6 +29,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [processandoId, setProcessandoId] = useState<number | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [itemParaOrcamento, setItemParaOrcamento] = useState<ListaComprasItem | null>(null);
 
   const carregarLista = async (pagina: number = page) => {
     setCarregando(true);
@@ -204,8 +206,11 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
                       Copiar Link
                     </button>
                   )}
+                  <button className="btn btn-outline" style={{ borderColor: 'var(--accent-info)', color: 'var(--accent-info)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setItemParaOrcamento(item)}>
+                    📋 Orçamentos
+                  </button>
                   <button className="btn btn-outline" style={{ borderColor: 'var(--accent-success)', color: 'var(--accent-success)', padding: '0.5rem 1rem' }} onClick={() => marcarComprado(item)} disabled={processandoId === item.id}>
-                    {processandoId === item.id ? 'Processando...' : 'Marcar como Comprado'}
+                    {processandoId === item.id ? 'Processando...' : 'Marcar Comprado'}
                   </button>
                   <button className="btn btn-outline" style={{ borderColor: 'var(--accent-danger)', color: 'var(--accent-danger)' }} onClick={() => excluirItem(item.id)} disabled={processandoId === item.id}>
                     Excluir
@@ -235,6 +240,14 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
           </div>
         )}
       </div>
+      {itemParaOrcamento && (
+        <ModalOrcamento
+          item={itemParaOrcamento}
+          onClose={() => setItemParaOrcamento(null)}
+          onSuccess={(msg) => setFeedback({ type: 'success', text: msg })}
+          onError={(msg) => setFeedback({ type: 'error', text: msg })}
+        />
+      )}
     </>
   );
 }
