@@ -53,7 +53,7 @@ export function ConsultaEstoque() {
       if (termoBusca.trim()) parametros.set('q', termoBusca.trim());
       if (filtro !== 'todos') parametros.set('status', filtro);
 
-      const resposta = await axios.get(`http://localhost:8000/itens/paginado?${parametros}`);
+      const resposta = await axios.get(`/api/itens/paginado?${parametros}`);
       setItens(resposta.data.items);
       setTotal(resposta.data.total);
     } catch (error) {
@@ -73,7 +73,7 @@ export function ConsultaEstoque() {
       if (busca.trim()) parametros.set('q', busca.trim());
       if (filtro !== 'todos') parametros.set('status', filtro);
 
-      axios.get(`http://localhost:8000/itens/paginado?${parametros}`)
+      axios.get(`/api/itens/paginado?${parametros}`)
         .then((resposta) => {
           setItens(resposta.data.items);
           setTotal(resposta.data.total);
@@ -105,7 +105,7 @@ export function ConsultaEstoque() {
 
     setSalvando(true);
     try {
-      await axios.put(`http://localhost:8000/itens/${edicao.id}`, {
+      await axios.put(`/api/itens/${edicao.id}`, {
         nome: edicao.nome,
         marca: edicao.marca || null,
         modelo: edicao.modelo || null,
@@ -349,3 +349,4 @@ export function ConsultaEstoque() {
     </>
   );
 }
+

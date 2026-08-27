@@ -35,7 +35,7 @@ export function HistoricoAjustes({ onNavigate }: HistoricoAjustesProps) {
       });
       if (busca.trim()) parametros.set('q', busca.trim());
 
-      axios.get(`http://localhost:8000/movimentacoes/historico/paginado?${parametros}`)
+      axios.get(`/api/movimentacoes/historico/paginado?${parametros}`)
         .then((resposta) => {
           setAjustes(resposta.data.items);
           setTotal(resposta.data.total);
@@ -125,3 +125,4 @@ export function HistoricoAjustes({ onNavigate }: HistoricoAjustesProps) {
     </div>
   );
 }
+
