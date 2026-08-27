@@ -160,7 +160,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
               style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
               required
             />
-            <small className="field-help">Pode informar algo que ainda não esteja cadastrado no estoque.</small>
+
           </div>
           <div style={{ flex: '1 1 200px' }}>
             <label htmlFor="emprestimo-pessoa" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome da pessoa</label>

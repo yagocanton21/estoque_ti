@@ -1,0 +1,21 @@
+name: Deploy para Producao
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Atualizar Repositorio
+        run: |
+          cd ~/projetos/estoque_ti
+          git pull origin main
+
+      - name: Reconstruir e Iniciar Containers
+        run: |
+          cd ~/projetos/estoque_ti
+          docker compose up -d --build
