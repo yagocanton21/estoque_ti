@@ -1,17 +1,21 @@
+import os
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./estoque.db"
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./estoque.db")
 
 # Adicionado timeout de 15 segundos para evitar erro de lock rápido
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False, "timeout": 15}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False, "timeout": 15} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {},
 )
 
 # Ativa o modo WAL no SQLite para permitir leituras e escritas simultâneas
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
+    if not SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+        return
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA synchronous=NORMAL")

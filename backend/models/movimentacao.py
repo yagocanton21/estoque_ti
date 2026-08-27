@@ -8,8 +8,11 @@ class Movimentacao(Base):
 
     id         = Column(Integer, primary_key=True, index=True, autoincrement=True)
     item_id    = Column(Integer, ForeignKey("itens.id"), nullable=False)
-    tipo       = Column(String, nullable=False)  # "entrada" ou "saida"
+    tipo       = Column(String, nullable=False, index=True)  # "entrada", "saida" ou "ajuste"
     quantidade = Column(Integer, nullable=False)
-    data       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    quantidade_anterior = Column(Integer, nullable=True)
+    quantidade_resultante = Column(Integer, nullable=True)
+    motivo     = Column(String, nullable=True)
+    data       = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     item = relationship("Item")

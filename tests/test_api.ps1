@@ -1,4 +1,10 @@
-$BASE = "http://localhost:8000"
+if (-not $env:TEST_API_BASE_URL) {
+    throw "Defina TEST_API_BASE_URL apontando para uma API com banco de testes isolado."
+}
+$BASE = $env:TEST_API_BASE_URL
+if ($BASE -match ':8000/?$' -and $env:ALLOW_MUTATING_LIVE_DB -ne '1') {
+    throw "Proteção ativa: estes testes não podem alterar a API principal na porta 8000."
+}
 $pass = 0
 $fail = 0
 
