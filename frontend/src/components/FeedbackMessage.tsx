@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 export type Feedback = {
   type: 'success' | 'error' | 'loading' | 'info';
   text: string;
@@ -9,6 +11,15 @@ interface FeedbackMessageProps {
 }
 
 export function FeedbackMessage({ feedback, onDismiss }: FeedbackMessageProps) {
+  useEffect(() => {
+    if (feedback && feedback.type !== 'loading' && onDismiss) {
+      const timer = setTimeout(() => {
+        onDismiss();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback, onDismiss]);
+
   if (!feedback) return null;
 
   return (

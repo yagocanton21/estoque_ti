@@ -24,3 +24,8 @@ class ListaComprasResponse(ListaComprasBase):
     data_compra: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+from typing import List
+class PaginatedListaComprasResponse(BaseModel):
+    total: int
+    items: List[ListaComprasResponse]

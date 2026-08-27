@@ -17,6 +17,10 @@ export interface ListaComprasProps {
 
 export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [lista, setLista] = useState<ListaComprasItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const [nome, setNome] = useState('');
   const [quantidade, setQuantidade] = useState(1);
   const [link, setLink] = useState('');
@@ -25,28 +29,24 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
-  useEffect(() => {
-    axios.get('/api/lista-compras/')
-      .then((resposta) => setLista(resposta.data))
-      .catch((error) => {
-        console.error('Erro ao buscar lista de compras:', error);
-        setFeedback({ type: 'error', text: 'Não foi possível carregar a lista de compras.' });
-      })
-      .finally(() => setCarregando(false));
-  }, []);
-
-  const carregarLista = async () => {
+  const carregarLista = async (pagina: number = page) => {
     setCarregando(true);
     try {
-      const res = await axios.get('/api/lista-compras/');
-      setLista(res.data);
+      const skip = (pagina - 1) * itemsPerPage;
+      const res = await axios.get(`/api/lista-compras/pendentes/paginado?skip=${skip}&limit=${itemsPerPage}`);
+      setLista(res.data.items);
+      setTotal(res.data.total);
     } catch (error) {
       console.error('Erro ao buscar lista de compras:', error);
-      setFeedback({ type: 'error', text: 'Não foi possível atualizar a lista de compras.' });
+      setFeedback({ type: 'error', text: 'Não foi possível carregar a lista de compras.' });
     } finally {
       setCarregando(false);
     }
   };
+
+  useEffect(() => {
+    carregarLista(page);
+  }, [page]);
 
   const adicionarAvulso = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +109,8 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     }
   };
 
-  const pendentes = lista.filter(i => !i.comprado);
+  const pendentes = lista;
+  const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
     <>
@@ -213,7 +214,26 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               </div>
             ))
           )}
-      </div>
+        </div>
+        {totalPages > 1 && (
+          <div className="inventory-pagination" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+            <button
+              className="btn btn-outline"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Anterior
+            </button>
+            <span>Página <strong>{page}</strong> de <strong>{totalPages}</strong></span>
+            <button
+              className="btn btn-outline"
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              Próxima
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

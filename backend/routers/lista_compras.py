@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models.lista_compras import ListaCompras
-from schemas.lista_compras import ListaComprasCreate, ListaComprasUpdate, ListaComprasResponse
+from schemas.lista_compras import ListaComprasCreate, ListaComprasUpdate, ListaComprasResponse, PaginatedListaComprasResponse
 from datetime import datetime
 
 router = APIRouter(prefix="/lista-compras", tags=["Lista de Compras"])
@@ -10,6 +10,13 @@ router = APIRouter(prefix="/lista-compras", tags=["Lista de Compras"])
 @router.get("/", response_model=list[ListaComprasResponse])
 def listar_itens_compras(db: Session = Depends(get_db)):
     return db.query(ListaCompras).all()
+
+@router.get("/pendentes/paginado", response_model=PaginatedListaComprasResponse)
+def listar_pendentes_paginado(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    consulta = db.query(ListaCompras).filter(ListaCompras.comprado == False)
+    total = consulta.count()
+    items = consulta.offset(skip).limit(limit).all()
+    return {"total": total, "items": items}
 
 @router.get("/{id}", response_model=ListaComprasResponse)
 def buscar_item_compra(id: int, db: Session = Depends(get_db)):
