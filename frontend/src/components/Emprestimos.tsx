@@ -219,7 +219,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
             )}
           </div>
         </div>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando empréstimos...</p>
           ) : emprestimos.length === 0 ? (

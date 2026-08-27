@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
 import { ModalOrcamento } from './ModalOrcamento';
@@ -31,6 +31,14 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [itemParaOrcamento, setItemParaOrcamento] = useState<ListaComprasItem | null>(null);
 
+  const informarSucessoOrcamento = useCallback((mensagem: string) => {
+    setFeedback({ type: 'success', text: mensagem });
+  }, []);
+
+  const informarErroOrcamento = useCallback((mensagem: string) => {
+    setFeedback({ type: 'error', text: mensagem });
+  }, []);
+
   const carregarLista = async (pagina: number = page) => {
     setCarregando(true);
     try {
@@ -47,7 +55,26 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   };
 
   useEffect(() => {
-    carregarLista(page);
+    const controller = new AbortController();
+    const skip = (page - 1) * itemsPerPage;
+    axios.get(
+      `/api/lista-compras/pendentes/paginado?skip=${skip}&limit=${itemsPerPage}`,
+      { signal: controller.signal },
+    )
+      .then((resposta) => {
+        setLista(resposta.data.items);
+        setTotal(resposta.data.total);
+      })
+      .catch((error) => {
+        if (axios.isCancel(error)) return;
+        console.error('Erro ao buscar lista de compras:', error);
+        setFeedback({ type: 'error', text: 'Não foi possível carregar a lista de compras.' });
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCarregando(false);
+      });
+
+    return () => controller.abort();
   }, [page]);
 
   const adicionarAvulso = async (e: React.FormEvent) => {
@@ -175,24 +202,23 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
       {/* Lista Principal */}
       <div className="card" style={{ marginTop: '2rem' }}>
         <h2>Produtos Pendentes para Compra</h2>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando lista de compras...</p>
           ) : pendentes.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Você não tem produtos pendentes de compra no momento.</p>
           ) : (
             pendentes.map(item => (
-              <div key={item.id} className="flex justify-between items-center" style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                <div>
+              <div key={item.id} className="purchase-item-row">
+                <div className="purchase-item-info">
                   <h4 style={{ fontSize: '1.2rem' }}>{item.nome}</h4>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '4px' }}>Quantidade solicitada: {item.quantidade}</p>
                   {item.item_id && <span className="badge badge-danger" style={{ display: 'inline-block', marginTop: '8px' }}>Gerado Automaticamente por Falta de Estoque</span>}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="purchase-item-actions">
                   {item.link && (
                     <button 
-                      className="btn btn-outline" 
-                      style={{ padding: '0.5rem 1rem', borderColor: 'var(--glass-border)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }} 
+                      className="btn btn-outline purchase-item-action purchase-action-link" 
                       onClick={() => {
                         navigator.clipboard.writeText(item.link!);
                         setFeedback({ type: 'success', text: 'Link copiado.' });
@@ -206,13 +232,19 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
                       Copiar Link
                     </button>
                   )}
-                  <button className="btn btn-outline" style={{ borderColor: 'var(--accent-info)', color: 'var(--accent-info)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setItemParaOrcamento(item)}>
-                    📋 Orçamentos
+                  <button className="btn btn-outline purchase-item-action purchase-action-budget" onClick={() => setItemParaOrcamento(item)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="8" y1="13" x2="16" y2="13"></line>
+                      <line x1="8" y1="17" x2="16" y2="17"></line>
+                    </svg>
+                    Orçamentos
                   </button>
-                  <button className="btn btn-outline" style={{ borderColor: 'var(--accent-success)', color: 'var(--accent-success)', padding: '0.5rem 1rem' }} onClick={() => marcarComprado(item)} disabled={processandoId === item.id}>
+                  <button className="btn btn-outline purchase-item-action purchase-action-complete" onClick={() => marcarComprado(item)} disabled={processandoId === item.id}>
                     {processandoId === item.id ? 'Processando...' : 'Marcar Comprado'}
                   </button>
-                  <button className="btn btn-outline" style={{ borderColor: 'var(--accent-danger)', color: 'var(--accent-danger)' }} onClick={() => excluirItem(item.id)} disabled={processandoId === item.id}>
+                  <button className="btn btn-outline purchase-item-action purchase-action-delete" onClick={() => excluirItem(item.id)} disabled={processandoId === item.id}>
                     Excluir
                   </button>
                 </div>
@@ -225,7 +257,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
             <button
               className="btn btn-outline"
               disabled={page === 1}
-              onClick={() => setPage(page - 1)}
+              onClick={() => { setCarregando(true); setPage(page - 1); }}
             >
               Anterior
             </button>
@@ -233,7 +265,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
             <button
               className="btn btn-outline"
               disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
+              onClick={() => { setCarregando(true); setPage(page + 1); }}
             >
               Próxima
             </button>
@@ -244,11 +276,10 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
         <ModalOrcamento
           item={itemParaOrcamento}
           onClose={() => setItemParaOrcamento(null)}
-          onSuccess={(msg) => setFeedback({ type: 'success', text: msg })}
-          onError={(msg) => setFeedback({ type: 'error', text: msg })}
+          onSuccess={informarSucessoOrcamento}
+          onError={informarErroOrcamento}
         />
       )}
     </>
   );
 }
-

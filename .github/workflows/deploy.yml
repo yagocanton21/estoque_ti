@@ -1,13 +1,16 @@
 name: Deploy para Producao
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+
+concurrency:
+  group: estoque-ti-producao
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: self-hosted
+    timeout-minutes: 20
 
     steps:
       - name: Atualizar Repositorio
@@ -15,7 +18,36 @@ jobs:
           cd ~/projetos/estoque_ti
           git pull origin main
 
+      - name: Validar Configuracao
+        run: |
+          cd ~/projetos/estoque_ti
+          docker compose --profile test config --quiet
+
+      - name: Executar Testes Isolados
+        run: |
+          cd ~/projetos/estoque_ti
+          docker compose --profile test build tests
+          docker compose --profile test run --rm tests
+
+      - name: Criar Backup do Banco
+        run: |
+          cd ~/projetos/estoque_ti
+          docker compose exec -T api python /app/tools/backup_database.py \
+            --output "/backups/pre-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.db"
+
       - name: Reconstruir e Iniciar Containers
         run: |
           cd ~/projetos/estoque_ti
           docker compose up -d --build
+
+      - name: Verificar Aplicacao
+        run: |
+          for tentativa in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null \
+              && curl --fail --silent http://127.0.0.1/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs --tail 100 api frontend
+          exit 1

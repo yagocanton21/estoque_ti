@@ -10,6 +10,16 @@ interface ListaComprasItem {
   comprado: boolean;
   link: string | null;
   data_compra: string | null;
+  tem_pdf: boolean;
+  pdf_nome: string | null;
+  pdf_atualizado_em: string | null;
+  orcamentos: Array<{
+    id: number;
+    fornecedor: string;
+    preco_unitario: number;
+    frete: number;
+    selecionado: boolean;
+  }>;
 }
 
 interface HistoricoComprasProps {
@@ -22,6 +32,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
   const [carregando, setCarregando] = useState(true);
   const [excluindoId, setExcluindoId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [busca, setBusca] = useState('');
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -38,7 +49,11 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
     setCarregando(true);
     try {
       const res = await axios.get('/api/lista-compras/');
-      setLista(res.data);
+      const dados: ListaComprasItem[] = res.data;
+      setLista(dados);
+      const totalConcluidos = dados.filter(item => item.comprado).length;
+      const ultimaPaginaValida = Math.max(1, Math.ceil(totalConcluidos / itemsPerPage));
+      setCurrentPage(paginaAtual => Math.min(paginaAtual, ultimaPaginaValida));
     } catch (error) {
       console.error('Erro ao buscar lista de compras:', error);
       setFeedback({ type: 'error', text: 'Não foi possível atualizar o histórico de compras.' });
@@ -64,20 +79,39 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
   };
 
   const concluidos = lista.filter(i => i.comprado);
-  const totalPages = Math.ceil(concluidos.length / itemsPerPage);
+
+  // Apply search filter
+  const termoBusca = busca.trim().toLowerCase();
+  const concluidosFiltrados = termoBusca
+    ? concluidos.filter(item => {
+        const orcSelecionado = item.orcamentos.find(o => o.selecionado);
+        return (
+          item.nome.toLowerCase().includes(termoBusca) ||
+          (orcSelecionado?.fornecedor || '').toLowerCase().includes(termoBusca)
+        );
+      })
+    : concluidos;
+
+  const totalPages = Math.ceil(concluidosFiltrados.length / itemsPerPage);
   
   // Apply pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedConcluidos = concluidos.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedConcluidos = concluidosFiltrados.slice(startIndex, startIndex + itemsPerPage);
 
   const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
   const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
 
   const formatarData = (dataStr: string | null) => {
     if (!dataStr) return 'Data desconhecida';
-    const data = new Date(dataStr + 'Z'); // Z garante que ele trate como UTC para não ter bug de fuso se já vier do backend
+    const possuiFuso = /(?:Z|[+-]\d{2}:\d{2})$/.test(dataStr);
+    const data = new Date(possuiFuso ? dataStr : `${dataStr}Z`);
     return data.toLocaleString('pt-BR');
   };
+
+  const formatarMoeda = (valor: number) => valor.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
 
   return (
     <>
@@ -98,48 +132,120 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h2>Compras Concluídas</h2>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div className="card purchase-history-section" style={{ marginTop: '2rem' }}>
+        <div className="purchase-history-heading">
+          <div>
+            <h2>Compras Concluídas</h2>
+            <p>Consulte os dados da compra e o PDF do orçamento utilizado.</p>
+          </div>
+          <span>{concluidosFiltrados.length} {concluidosFiltrados.length === 1 ? 'registro' : 'registros'}</span>
+        </div>
+
+        <div className="inventory-search" style={{ marginTop: '1.25rem' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            type="search"
+            value={busca}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Pesquisar por nome do item ou fornecedor..."
+            aria-label="Pesquisar no histórico de compras"
+          />
+          {busca && (
+            <button type="button" onClick={() => { setBusca(''); setCurrentPage(1); }}>
+              Limpar
+            </button>
+          )}
+        </div>
+        <div className="purchase-history-list">
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando histórico...</p>
-          ) : concluidos.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>Nenhuma compra foi concluída ainda.</p>
+          ) : concluidosFiltrados.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)' }}>{busca ? 'Nenhuma compra encontrada para essa pesquisa.' : 'Nenhuma compra foi concluída ainda.'}</p>
           ) : (
-            paginatedConcluidos.map(item => (
-              <div key={item.id} className="flex justify-between items-center" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', opacity: 0.8 }}>
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{item.nome}</h4>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '4px' }}>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Qtde: {item.quantidade}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Comprado em: {formatarData(item.data_compra)}</p>
+            paginatedConcluidos.map(item => {
+              const orcamentoSelecionado = item.orcamentos.find(orcamento => orcamento.selecionado);
+              const totalSelecionado = orcamentoSelecionado
+                ? (orcamentoSelecionado.preco_unitario * item.quantidade) + orcamentoSelecionado.frete
+                : null;
+
+              return (
+                <article key={item.id} className="purchase-history-card">
+                  <div className="purchase-history-main">
+                    <div className="purchase-history-title">
+                      <span className="purchase-history-icon" aria-hidden="true">✓</span>
+                      <div>
+                        <h3>{item.nome}</h3>
+                        <span>Compra concluída em {formatarData(item.data_compra)}</span>
+                      </div>
+                    </div>
+
+                    <div className="purchase-history-details">
+                      <div>
+                        <span>Quantidade</span>
+                        <strong>{item.quantidade}</strong>
+                      </div>
+                      <div>
+                        <span>Fornecedor escolhido</span>
+                        <strong>{orcamentoSelecionado?.fornecedor || 'Não informado'}</strong>
+                      </div>
+                      <div>
+                        <span>Valor do orçamento</span>
+                        <strong>{totalSelecionado === null ? 'Não informado' : formatarMoeda(totalSelecionado)}</strong>
+                      </div>
+                      <div>
+                        <span>Documento</span>
+                        <strong className={item.tem_pdf ? 'pdf-available' : 'pdf-missing'}>
+                          {item.tem_pdf ? 'PDF disponível' : 'PDF não salvo'}
+                        </strong>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  {item.link && (
-                    <button 
-                      className="btn btn-outline" 
-                      style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', borderColor: 'var(--glass-border)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px' }} 
-                      onClick={() => {
-                        navigator.clipboard.writeText(item.link!);
-                        setFeedback({ type: 'success', text: 'Link copiado.' });
-                      }}
-                      title="Copiar Link"
+
+                  <div className="purchase-history-actions">
+                    {item.tem_pdf && (
+                      <a
+                        className="btn btn-primary"
+                        href={`/api/lista-compras/${item.id}/pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={item.pdf_nome || 'Abrir PDF do orçamento'}
+                      >
+                        Ver PDF
+                      </a>
+                    )}
+                    {item.link && (
+                      <a className="btn btn-outline" href={item.link} target="_blank" rel="noreferrer">
+                        Abrir loja
+                      </a>
+                    )}
+                    <button
+                      className="btn btn-outline purchase-history-delete purchase-history-delete-icon"
+                      onClick={() => excluirItem(item.id)}
+                      disabled={excluindoId === item.id}
+                      aria-label={`Excluir registro de ${item.nome}`}
+                      title="Excluir registro"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                      Copiar
+                      {excluindoId === item.id ? (
+                        <span className="loading-spinner" aria-hidden="true"></span>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6l-1 14H6L5 6"></path>
+                          <path d="M10 11v6M14 11v6"></path>
+                          <path d="M9 6V4h6v2"></path>
+                        </svg>
+                      )}
                     </button>
-                  )}
-                  <span className="badge badge-success">Concluído</span>
-                  <button className="btn btn-outline" style={{ padding: '0.2rem 0.5rem', borderColor: 'var(--accent-danger)', color: 'var(--accent-danger)' }} onClick={() => excluirItem(item.id)} disabled={excluindoId === item.id}>
-                    {excluindoId === item.id ? 'Excluindo...' : 'Excluir'}
-                  </button>
-                </div>
-              </div>
-            ))
+                  </div>
+                </article>
+              );
+            })
           )}
         </div>
         
@@ -158,4 +264,3 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
     </>
   );
 }
-

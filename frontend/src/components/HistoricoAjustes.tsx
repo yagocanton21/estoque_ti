@@ -26,7 +26,6 @@ export function HistoricoAjustes({ onNavigate }: HistoricoAjustesProps) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   useEffect(() => {
-    setCarregando(true);
     const timeout = window.setTimeout(() => {
       const parametros = new URLSearchParams({
         skip: String((pagina - 1) * ITENS_POR_PAGINA),
@@ -73,11 +72,11 @@ export function HistoricoAjustes({ onNavigate }: HistoricoAjustesProps) {
         <input
           type="search"
           value={busca}
-          onChange={(evento) => { setBusca(evento.target.value); setPagina(1); }}
+          onChange={(evento) => { setCarregando(true); setBusca(evento.target.value); setPagina(1); }}
           placeholder="Buscar produto ou motivo..."
           aria-label="Buscar no histórico de ajustes"
         />
-        {busca && <button type="button" onClick={() => setBusca('')}>Limpar</button>}
+        {busca && <button type="button" onClick={() => { setCarregando(true); setBusca(''); setPagina(1); }}>Limpar</button>}
       </div>
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
@@ -117,12 +116,11 @@ export function HistoricoAjustes({ onNavigate }: HistoricoAjustesProps) {
 
       {totalPaginas > 1 && (
         <div className="inventory-pagination">
-          <button className="btn btn-outline" disabled={pagina === 1} onClick={() => setPagina((valor) => valor - 1)}>Anterior</button>
+          <button className="btn btn-outline" disabled={pagina === 1} onClick={() => { setCarregando(true); setPagina((valor) => valor - 1); }}>Anterior</button>
           <span>Página <strong>{pagina}</strong> de <strong>{totalPaginas}</strong></span>
-          <button className="btn btn-outline" disabled={pagina === totalPaginas} onClick={() => setPagina((valor) => valor + 1)}>Próxima</button>
+          <button className="btn btn-outline" disabled={pagina === totalPaginas} onClick={() => { setCarregando(true); setPagina((valor) => valor + 1); }}>Próxima</button>
         </div>
       )}
     </div>
   );
 }
-

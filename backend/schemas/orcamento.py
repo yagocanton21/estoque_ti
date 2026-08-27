@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 class OrcamentoBase(BaseModel):
@@ -7,6 +7,14 @@ class OrcamentoBase(BaseModel):
     frete: float = Field(default=0.0, ge=0, description="Valor do frete")
     link: Optional[str] = Field(default=None, description="Link do produto")
     selecionado: bool = False
+
+    @field_validator("fornecedor")
+    @classmethod
+    def validar_fornecedor(cls, valor: str) -> str:
+        fornecedor = valor.strip()
+        if not fornecedor:
+            raise ValueError("Informe o fornecedor")
+        return fornecedor
 
 class OrcamentoCreate(OrcamentoBase):
     pass

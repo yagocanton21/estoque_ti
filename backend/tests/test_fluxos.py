@@ -150,3 +150,121 @@ def test_historico_de_ajustes_limita_cinco_por_pagina(client):
     assert historico.status_code == 200
     assert historico.json()["total"] == 6
     assert len(historico.json()["items"]) == 5
+
+
+def test_fluxo_completo_de_orcamentos_e_selecao_unica(client):
+    item_lista = client.post(
+        "/lista-compras/",
+        json={
+            "nome": "Fonte 350W",
+            "quantidade": 3,
+            "item_id": None,
+            "link": None,
+        },
+    )
+    assert item_lista.status_code == 201
+    item_lista_id = item_lista.json()["id"]
+
+    fornecedor_invalido = client.post(
+        f"/lista-compras/{item_lista_id}/orcamentos",
+        json={"fornecedor": "   ", "preco_unitario": 100, "frete": 0},
+    )
+    assert fornecedor_invalido.status_code == 422
+
+    primeiro = client.post(
+        f"/lista-compras/{item_lista_id}/orcamentos",
+        json={
+            "fornecedor": "Loja A",
+            "preco_unitario": 100.10,
+            "frete": 12.30,
+            "link": "https://loja-a.example/produto",
+        },
+    )
+    segundo = client.post(
+        f"/lista-compras/{item_lista_id}/orcamentos",
+        json={
+            "fornecedor": "Loja B",
+            "preco_unitario": 98.75,
+            "frete": 15,
+            "link": None,
+        },
+    )
+    assert primeiro.status_code == 201
+    assert segundo.status_code == 201
+    primeiro_id = primeiro.json()["id"]
+    segundo_id = segundo.json()["id"]
+
+    assert client.put(
+        f"/lista-compras/orcamentos/{primeiro_id}",
+        json={"selecionado": True},
+    ).status_code == 200
+    assert client.put(
+        f"/lista-compras/orcamentos/{segundo_id}",
+        json={"selecionado": True},
+    ).status_code == 200
+
+    detalhe = client.get(f"/lista-compras/{item_lista_id}")
+    assert detalhe.status_code == 200
+    selecionados = [
+        orcamento
+        for orcamento in detalhe.json()["orcamentos"]
+        if orcamento["selecionado"]
+    ]
+    assert [orcamento["id"] for orcamento in selecionados] == [segundo_id]
+
+    atualizado = client.put(
+        f"/lista-compras/orcamentos/{segundo_id}",
+        json={"preco_unitario": 97.55, "frete": 10.25},
+    )
+    assert atualizado.status_code == 200
+    assert atualizado.json()["preco_unitario"] == 97.55
+    assert atualizado.json()["frete"] == 10.25
+
+    assert client.delete(
+        f"/lista-compras/orcamentos/{primeiro_id}"
+    ).status_code == 204
+
+    assert client.delete(f"/lista-compras/{item_lista_id}").status_code == 204
+    orcamento_removido_em_cascata = client.delete(
+        f"/lista-compras/orcamentos/{segundo_id}"
+    )
+    assert orcamento_removido_em_cascata.status_code == 404
+
+
+def test_pdf_do_orcamento_fica_disponivel_no_historico(client):
+    item_lista = client.post(
+        "/lista-compras/",
+        json={"nome": "Monitor 24", "quantidade": 2},
+    )
+    item_lista_id = item_lista.json()["id"]
+    pdf = b"%PDF-1.4\n% PDF de teste\n%%EOF"
+
+    envio_invalido = client.put(
+        f"/lista-compras/{item_lista_id}/pdf",
+        content=b"nao e pdf",
+        headers={"Content-Type": "text/plain"},
+    )
+    assert envio_invalido.status_code == 415
+
+    envio = client.put(
+        f"/lista-compras/{item_lista_id}/pdf",
+        content=pdf,
+        headers={
+            "Content-Type": "application/pdf",
+            "X-PDF-Filename": "Orcamento_Monitor_24.pdf",
+        },
+    )
+    assert envio.status_code == 200
+    assert envio.json()["tem_pdf"] is True
+
+    client.put(f"/lista-compras/{item_lista_id}", json={"comprado": True})
+    historico = client.get("/lista-compras/")
+    registro = historico.json()[0]
+    assert registro["tem_pdf"] is True
+    assert registro["pdf_nome"] == "Orcamento_Monitor_24.pdf"
+    assert "orcamento_pdf" not in registro
+
+    visualizacao = client.get(f"/lista-compras/{item_lista_id}/pdf")
+    assert visualizacao.status_code == 200
+    assert visualizacao.headers["content-type"] == "application/pdf"
+    assert visualizacao.content == pdf

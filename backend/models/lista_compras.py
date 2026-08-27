@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy.orm import deferred, relationship
 from database import Base
 
 class ListaCompras(Base):
@@ -12,5 +12,20 @@ class ListaCompras(Base):
     comprado   = Column(Boolean, nullable=False, default=False)
     link       = Column(String, nullable=True)
     data_compra = Column(DateTime, nullable=True)
+    orcamento_pdf = deferred(Column(LargeBinary, nullable=True))
+    orcamento_pdf_nome = Column(String(180), nullable=True)
+    orcamento_pdf_atualizado_em = Column(DateTime, nullable=True)
 
     orcamentos = relationship("Orcamento", back_populates="lista_compras", cascade="all, delete-orphan")
+
+    @property
+    def tem_pdf(self) -> bool:
+        return bool(self.orcamento_pdf_nome)
+
+    @property
+    def pdf_nome(self) -> str | None:
+        return self.orcamento_pdf_nome
+
+    @property
+    def pdf_atualizado_em(self):
+        return self.orcamento_pdf_atualizado_em

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.emprestimo import Emprestimo
 from schemas.emprestimo import EmprestimoCreate, EmprestimoResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
 from sqlalchemy import or_
 
@@ -67,7 +67,7 @@ def devolver_emprestimo(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Este item já foi devolvido")
 
     emp.devolvido = True
-    emp.data_devolucao = datetime.utcnow()
+    emp.data_devolucao = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(emp)

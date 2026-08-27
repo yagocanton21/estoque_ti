@@ -24,7 +24,10 @@ from schemas.orcamento import OrcamentoResponse
 class ListaComprasResponse(ListaComprasBase):
     id: int
     data_compra: Optional[datetime] = None
-    orcamentos: list[OrcamentoResponse] = []
+    tem_pdf: bool = False
+    pdf_nome: Optional[str] = None
+    pdf_atualizado_em: Optional[datetime] = None
+    orcamentos: list[OrcamentoResponse] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 
@@ -32,3 +35,9 @@ from typing import List
 class PaginatedListaComprasResponse(BaseModel):
     total: int
     items: List[ListaComprasResponse]
+
+
+class PdfOrcamentoResponse(BaseModel):
+    tem_pdf: bool
+    pdf_nome: str
+    pdf_atualizado_em: datetime
