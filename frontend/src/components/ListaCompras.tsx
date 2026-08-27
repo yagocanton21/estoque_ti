@@ -26,7 +26,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/lista-compras/')
+    axios.get('/api/lista-compras/')
       .then((resposta) => setLista(resposta.data))
       .catch((error) => {
         console.error('Erro ao buscar lista de compras:', error);
@@ -38,7 +38,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const carregarLista = async () => {
     setCarregando(true);
     try {
-      const res = await axios.get('http://localhost:8000/lista-compras/');
+      const res = await axios.get('/api/lista-compras/');
       setLista(res.data);
     } catch (error) {
       console.error('Erro ao buscar lista de compras:', error);
@@ -53,7 +53,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     setSalvando(true);
     setFeedback({ type: 'loading', text: 'Adicionando produto à lista...' });
     try {
-      await axios.post('http://localhost:8000/lista-compras/', {
+      await axios.post('/api/lista-compras/', {
         nome,
         quantidade,
         item_id: null,
@@ -76,7 +76,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     setProcessandoId(item.id);
     setFeedback({ type: 'loading', text: 'Marcando produto como comprado...' });
     try {
-      await axios.put(`http://localhost:8000/lista-compras/${item.id}`, {
+      await axios.put(`/api/lista-compras/${item.id}`, {
         nome: item.nome,
         quantidade: item.quantidade,
         item_id: item.item_id,
@@ -98,7 +98,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     setProcessandoId(id);
     setFeedback({ type: 'loading', text: 'Excluindo produto da lista...' });
     try {
-      await axios.delete(`http://localhost:8000/lista-compras/${id}`);
+      await axios.delete(`/api/lista-compras/${id}`);
       await carregarLista();
       setFeedback({ type: 'success', text: 'Produto excluído da lista de compras.' });
     } catch (error: any) {
@@ -218,3 +218,4 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     </>
   );
 }
+

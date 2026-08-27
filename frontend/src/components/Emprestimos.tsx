@@ -38,7 +38,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
       });
       if (termoBusca.trim()) parametros.set('q', termoBusca.trim());
 
-      const resposta = await axios.get(`http://localhost:8000/emprestimos/ativos/paginado?${parametros}`);
+      const resposta = await axios.get(`/api/emprestimos/ativos/paginado?${parametros}`);
       const novoTotal = resposta.data.total;
       const ultimaPagina = Math.max(1, Math.ceil(novoTotal / itemsPerPage));
 
@@ -64,7 +64,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
       });
       if (busca.trim()) parametros.set('q', busca.trim());
 
-      axios.get(`http://localhost:8000/emprestimos/ativos/paginado?${parametros}`)
+      axios.get(`/api/emprestimos/ativos/paginado?${parametros}`)
         .then((resposta) => {
           setEmprestimos(resposta.data.items);
           setTotal(resposta.data.total);
@@ -89,7 +89,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
     setSalvando(true);
     setFeedback({ type: 'loading', text: 'Registrando empréstimo...' });
     try {
-      await axios.post('http://localhost:8000/emprestimos/', {
+      await axios.post('/api/emprestimos/', {
         item_nome: itemNome,
         pessoa,
         quantidade,
@@ -114,7 +114,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
     setDevolvendoId(id);
     setFeedback({ type: 'loading', text: 'Registrando devolução...' });
     try {
-      await axios.put(`http://localhost:8000/emprestimos/${id}/devolver`);
+      await axios.put(`/api/emprestimos/${id}/devolver`);
       carregarDados();
       setFeedback({ type: 'success', text: 'Devolução registrada com sucesso.' });
     } catch (error: any) {
@@ -264,3 +264,4 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
     </>
   );
 }
+

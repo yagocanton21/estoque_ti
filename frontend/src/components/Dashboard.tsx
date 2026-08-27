@@ -28,10 +28,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const resItens = await axios.get('http://localhost:8000/itens/');
+        const resItens = await axios.get('/api/itens/');
         setItens(resItens.data);
 
-        const resLista = await axios.get('http://localhost:8000/lista-compras/');
+        const resLista = await axios.get('/api/lista-compras/');
         setListaCompras(resLista.data.filter((i: ListaComprasItem) => !i.comprado));
         setFeedback(null);
       } catch (error) {
@@ -136,3 +136,4 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     </>
   );
 }
+

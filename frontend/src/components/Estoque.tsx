@@ -16,7 +16,7 @@ export function Estoque() {
     setSalvando(true);
     setFeedback({ type: 'loading', text: 'Cadastrando produto...' });
     try {
-      await axios.post('http://localhost:8000/itens/', {
+      await axios.post('/api/itens/', {
         nome,
         quantidade,
         quantidade_minima: quantidadeMinima,
@@ -96,3 +96,4 @@ export function Estoque() {
     </div>
   );
 }
+

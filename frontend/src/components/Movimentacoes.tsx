@@ -25,7 +25,7 @@ export function Movimentacoes() {
     if (busca.length <= 1 || produtoSelecionado) return;
 
     const timeout = window.setTimeout(() => {
-      axios.get(`http://localhost:8000/itens/buscar?q=${encodeURIComponent(busca)}`)
+      axios.get(`/api/itens/buscar?q=${encodeURIComponent(busca)}`)
         .then((resposta) => setSugestoes(resposta.data))
         .catch((error) => {
           console.error('Erro ao procurar produtos:', error);
@@ -62,7 +62,7 @@ export function Movimentacoes() {
     setFeedback({ type: 'loading', text: tipo === 'ajuste' ? 'Registrando ajuste...' : 'Registrando movimentação...' });
     try {
       if (tipo === 'ajuste') {
-        await axios.post('http://localhost:8000/movimentacoes/ajuste', {
+        await axios.post('/api/movimentacoes/ajuste', {
           item_id: produtoSelecionado.id,
           nova_quantidade: novaQuantidade,
           motivo,
@@ -72,7 +72,7 @@ export function Movimentacoes() {
           text: `Estoque de “${produtoSelecionado.nome}” ajustado de ${produtoSelecionado.quantidade} para ${novaQuantidade}.`,
         });
       } else {
-        await axios.post('http://localhost:8000/movimentacoes/', {
+        await axios.post('/api/movimentacoes/', {
           item_id: produtoSelecionado.id,
           tipo,
           quantidade,
@@ -234,3 +234,4 @@ export function Movimentacoes() {
     </div>
   );
 }
+

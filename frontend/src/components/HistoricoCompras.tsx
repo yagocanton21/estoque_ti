@@ -25,7 +25,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
   const itemsPerPage = 5;
 
   useEffect(() => {
-    axios.get('http://localhost:8000/lista-compras/')
+    axios.get('/api/lista-compras/')
       .then((resposta) => setLista(resposta.data))
       .catch((error) => {
         console.error('Erro ao buscar histórico de compras:', error);
@@ -37,7 +37,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
   const carregarLista = async () => {
     setCarregando(true);
     try {
-      const res = await axios.get('http://localhost:8000/lista-compras/');
+      const res = await axios.get('/api/lista-compras/');
       setLista(res.data);
     } catch (error) {
       console.error('Erro ao buscar lista de compras:', error);
@@ -52,7 +52,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
     setExcluindoId(id);
     setFeedback({ type: 'loading', text: 'Excluindo registro do histórico...' });
     try {
-      await axios.delete(`http://localhost:8000/lista-compras/${id}`);
+      await axios.delete(`/api/lista-compras/${id}`);
       await carregarLista();
       setFeedback({ type: 'success', text: 'Registro excluído do histórico.' });
     } catch (error: any) {
@@ -158,3 +158,4 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
     </>
   );
 }
+

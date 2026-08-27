@@ -25,7 +25,7 @@ export function EstoqueCritico({ onNavigate }: EstoqueCriticoProps) {
 
   useEffect(() => {
     const skip = (page - 1) * itemsPerPage;
-    axios.get(`http://localhost:8000/itens/criticos/paginado?skip=${skip}&limit=${itemsPerPage}`)
+    axios.get(`/api/itens/criticos/paginado?skip=${skip}&limit=${itemsPerPage}`)
       .then((resposta) => {
         setItens(resposta.data.items);
         setTotal(resposta.data.total);
@@ -120,3 +120,4 @@ export function EstoqueCritico({ onNavigate }: EstoqueCriticoProps) {
     </>
   );
 }
+

@@ -26,7 +26,7 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
   useEffect(() => {
     const carregarHistorico = async () => {
       try {
-        const resposta = await axios.get('http://localhost:8000/emprestimos/');
+        const resposta = await axios.get('/api/emprestimos/');
         setEmprestimos(resposta.data);
       } catch (error) {
         console.error('Erro ao buscar histórico de devoluções:', error);
@@ -118,3 +118,4 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
     </>
   );
 }
+
