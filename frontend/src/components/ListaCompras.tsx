@@ -30,6 +30,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [itemParaOrcamento, setItemParaOrcamento] = useState<ListaComprasItem | null>(null);
+  const [itemEmEdicao, setItemEmEdicao] = useState<ListaComprasItem | null>(null);
 
   const informarSucessoOrcamento = useCallback((mensagem: string) => {
     setFeedback({ type: 'success', text: mensagem });
@@ -138,6 +139,38 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     }
   };
 
+  const salvarEdicao = async (evento: React.FormEvent) => {
+    evento.preventDefault();
+    if (!itemEmEdicao || processandoId !== null) return;
+
+    const nomeEditado = itemEmEdicao.nome.trim();
+    if (!nomeEditado) {
+      setFeedback({ type: 'error', text: 'Informe o nome do produto.' });
+      return;
+    }
+
+    setProcessandoId(itemEmEdicao.id);
+    setFeedback({ type: 'loading', text: 'Salvando alterações do produto...' });
+    try {
+      await axios.put(`/api/lista-compras/${itemEmEdicao.id}`, {
+        nome: nomeEditado,
+        quantidade: itemEmEdicao.quantidade,
+        link: itemEmEdicao.link?.trim() || null,
+      });
+      await carregarLista();
+      setItemEmEdicao(null);
+      setFeedback({ type: 'success', text: `“${nomeEditado}” foi atualizado com sucesso.` });
+    } catch (error: any) {
+      console.error('Erro ao editar item da lista:', error);
+      setFeedback({
+        type: 'error',
+        text: error.response?.data?.detail || 'Não foi possível salvar as alterações.',
+      });
+    } finally {
+      setProcessandoId(null);
+    }
+  };
+
   const pendentes = lista;
   const totalPages = Math.ceil(total / itemsPerPage);
 
@@ -225,6 +258,13 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
                   )}
                 </div>
                 <div className="purchase-item-actions">
+                  <button
+                    className="btn btn-outline purchase-item-action purchase-action-edit"
+                    onClick={() => setItemEmEdicao({ ...item })}
+                    disabled={processandoId === item.id}
+                  >
+                    Editar
+                  </button>
                   {item.link && (
                     <button 
                       className="btn btn-outline purchase-item-action purchase-action-link" 
@@ -288,6 +328,80 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
           onSuccess={informarSucessoOrcamento}
           onError={informarErroOrcamento}
         />
+      )}
+      {itemEmEdicao && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setItemEmEdicao(null)}>
+          <section
+            className="edit-modal purchase-edit-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-purchase-item-title"
+            onMouseDown={(evento) => evento.stopPropagation()}
+          >
+            <div className="edit-modal-header">
+              <div>
+                <span>Editando item pendente #{itemEmEdicao.id}</span>
+                <h2 id="edit-purchase-item-title">Editar produto da lista</h2>
+              </div>
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => setItemEmEdicao(null)}
+                aria-label="Fechar edição"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={salvarEdicao} className="simple-form">
+              <label className="form-field" htmlFor="editar-compra-produto">
+                <span>Nome do produto</span>
+                <input
+                  id="editar-compra-produto"
+                  type="text"
+                  value={itemEmEdicao.nome}
+                  onChange={(evento) => setItemEmEdicao({ ...itemEmEdicao, nome: evento.target.value })}
+                  required
+                  autoFocus
+                />
+              </label>
+
+              <label className="form-field" htmlFor="editar-compra-quantidade">
+                <span>Quantidade</span>
+                <input
+                  id="editar-compra-quantidade"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  value={itemEmEdicao.quantidade}
+                  onChange={(evento) => setItemEmEdicao({ ...itemEmEdicao, quantidade: Number(evento.target.value) })}
+                  required
+                />
+              </label>
+
+              <label className="form-field" htmlFor="editar-compra-link">
+                <span>Link da loja (opcional)</span>
+                <input
+                  id="editar-compra-link"
+                  type="url"
+                  value={itemEmEdicao.link || ''}
+                  onChange={(evento) => setItemEmEdicao({ ...itemEmEdicao, link: evento.target.value })}
+                  placeholder="https://loja..."
+                />
+              </label>
+
+              <div className="edit-modal-actions purchase-edit-actions">
+                <button type="button" className="btn btn-outline" onClick={() => setItemEmEdicao(null)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={processandoId === itemEmEdicao.id}>
+                  {processandoId === itemEmEdicao.id ? 'Salvando...' : 'Salvar alterações'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
       )}
     </>
   );

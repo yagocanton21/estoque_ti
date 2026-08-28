@@ -152,6 +152,45 @@ def test_historico_de_ajustes_limita_cinco_por_pagina(client):
     assert len(historico.json()["items"]) == 5
 
 
+def test_historico_paginado_de_entradas_e_saidas_nao_inclui_ajustes(client):
+    produto = client.post(
+        "/itens/",
+        json={
+            "nome": "Produto com histórico de consumo",
+            "quantidade": 10,
+            "quantidade_minima": 0,
+        },
+    )
+    produto_id = produto.json()["id"]
+
+    assert client.post(
+        "/movimentacoes/",
+        json={"item_id": produto_id, "tipo": "entrada", "quantidade": 5},
+    ).status_code == 201
+    assert client.post(
+        "/movimentacoes/",
+        json={"item_id": produto_id, "tipo": "saida", "quantidade": 3},
+    ).status_code == 201
+    assert client.post(
+        "/movimentacoes/ajuste",
+        json={
+            "item_id": produto_id,
+            "nova_quantidade": 11,
+            "motivo": "Conferência para validar o filtro",
+        },
+    ).status_code == 201
+
+    historico = client.get(
+        "/movimentacoes/historico/paginado?skip=0&limit=10&tipo=entrada_saida"
+    )
+    assert historico.status_code == 200
+    assert historico.json()["total"] == 2
+    assert {item["tipo"] for item in historico.json()["items"]} == {
+        "entrada",
+        "saida",
+    }
+
+
 def test_fluxo_completo_de_orcamentos_e_selecao_unica(client):
     item_lista = client.post(
         "/lista-compras/",

@@ -45,11 +45,13 @@ def listar_historico_paginado(
     skip: int = 0,
     limit: int = 5,
     q: str | None = None,
-    tipo: Literal["entrada", "saida", "ajuste"] | None = None,
+    tipo: Literal["entrada", "saida", "ajuste", "entrada_saida"] | None = None,
     db: Session = Depends(get_db),
 ):
     consulta = db.query(Movimentacao).join(Item)
-    if tipo:
+    if tipo == "entrada_saida":
+        consulta = consulta.filter(Movimentacao.tipo.in_(["entrada", "saida"]))
+    elif tipo:
         consulta = consulta.filter(Movimentacao.tipo == tipo)
     if q and q.strip():
         termo = f"%{q.strip()}%"

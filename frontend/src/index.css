@@ -621,6 +621,49 @@ main.container {
   margin-bottom: 1.25rem;
 }
 
+.movement-history-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.movement-history-toolbar .inventory-search {
+  flex: 1;
+  width: auto;
+}
+
+.movement-type-filter {
+  display: flex;
+  flex: 0 0 220px;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.movement-type-filter select {
+  min-width: 0;
+  flex: 1;
+  padding: 0.75rem 1.5rem 0.75rem 0.35rem;
+  border: 0;
+  background-color: transparent;
+  color: var(--text-main);
+  font: inherit;
+}
+
+.movement-value-entry {
+  color: #6ee7b7;
+}
+
+.movement-value-exit {
+  color: #fca5a5;
+}
+
 .movement-history-list {
   overflow: hidden;
   border: 1px solid var(--glass-border);
@@ -1537,6 +1580,12 @@ main.container {
   color: #cbd5e1;
 }
 
+.purchase-action-edit {
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.06);
+  color: #ddd6fe;
+}
+
 .purchase-action-budget {
   border-color: rgba(96, 165, 250, 0.42);
   background: rgba(96, 165, 250, 0.07);
@@ -1556,9 +1605,18 @@ main.container {
 }
 
 .purchase-action-budget:hover,
+.purchase-action-edit:hover,
 .purchase-action-complete:hover,
 .purchase-action-delete:hover {
   filter: brightness(1.15);
+}
+
+.purchase-edit-modal {
+  width: min(520px, 100%);
+}
+
+.purchase-edit-actions {
+  justify-content: flex-end;
 }
 
 .budget-section {
@@ -2159,6 +2217,16 @@ main.container {
   .danger-outline-button {
     width: 100%;
   }
+
+  .movement-history-toolbar {
+    flex-direction: column;
+  }
+
+  .movement-type-filter {
+    flex: 1 1 auto;
+    min-height: 48px;
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {
@@ -2406,6 +2474,15 @@ main.container {
     padding: 0.55rem 0.4rem;
     font-size: 0.72rem;
     line-height: 1.2;
+  }
+
+  .purchase-edit-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .purchase-edit-actions .btn {
+    width: 100%;
   }
 
   .dashboard-summary-grid {

@@ -11,6 +11,15 @@ export function Historicos({ onNavigate }: HistoricosProps) {
       </div>
 
       <div className="history-options">
+        <button type="button" className="history-option" onClick={() => onNavigate('historico_movimentacoes')}>
+          <span className="history-option-icon" aria-hidden="true">↕</span>
+          <span>
+            <strong>Entradas e saídas</strong>
+            <small>Veja quando os produtos chegaram, foram utilizados e o saldo restante.</small>
+          </span>
+          <span aria-hidden="true">→</span>
+        </button>
+
         <button type="button" className="history-option" onClick={() => onNavigate('historico_ajustes')}>
           <span className="history-option-icon" aria-hidden="true">±</span>
           <span>
@@ -41,4 +50,3 @@ export function Historicos({ onNavigate }: HistoricosProps) {
     </div>
   );
 }
-

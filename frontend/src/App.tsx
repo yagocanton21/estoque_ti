@@ -11,8 +11,9 @@ import { Movimentacoes } from './components/Movimentacoes';
 import { EstoqueCritico } from './components/EstoqueCritico';
 import { Historicos } from './components/Historicos';
 import { HistoricoAjustes } from './components/HistoricoAjustes';
+import { HistoricoMovimentacoes } from './components/HistoricoMovimentacoes';
 
-type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes';
+type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_movimentacoes' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -49,6 +50,7 @@ function App() {
       case 'compras': return <ListaCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_compras': return <HistoricoCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_ajustes': return <HistoricoAjustes onNavigate={(t) => setActiveTab(t as Tab)} />;
+      case 'historico_movimentacoes': return <HistoricoMovimentacoes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historicos': return <Historicos onNavigate={(t) => setActiveTab(t as Tab)} />;
       default: return <Dashboard onNavigate={(t) => setActiveTab(t as Tab)} />;
     }
@@ -91,6 +93,12 @@ function App() {
         {settingsOpen && (
           <div id="history-shortcuts-menu" className="history-shortcuts-menu">
             <h3>Históricos</h3>
+            <button
+              className="btn btn-outline"
+              onClick={() => navigateTo('historico_movimentacoes')}
+            >
+              <span style={{ marginRight: '8px' }}>↕</span> Entradas e Saídas
+            </button>
             <button 
               className="btn btn-outline"
               onClick={() => navigateTo('historico_compras')}
@@ -179,7 +187,7 @@ function App() {
             Lista de Compras
           </button>
           <button
-            className={activeTab === 'historicos' || activeTab === 'historico_compras' || activeTab === 'historico_devolucoes' || activeTab === 'historico_ajustes' ? 'btn btn-primary' : 'btn btn-outline'}
+            className={activeTab === 'historicos' || activeTab === 'historico_movimentacoes' || activeTab === 'historico_compras' || activeTab === 'historico_devolucoes' || activeTab === 'historico_ajustes' ? 'btn btn-primary' : 'btn btn-outline'}
             onClick={() => navigateTo('historicos')}
           >
             Históricos
