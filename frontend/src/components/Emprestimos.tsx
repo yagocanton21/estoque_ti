@@ -133,7 +133,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', gap: '1rem' }}>
+      <div className="page-action-header">
         <h1>Controle de Empréstimos</h1>
         <button
           className="btn btn-outline"
@@ -146,10 +146,10 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
-      <div className="card" style={{ marginTop: '2rem' }}>
+      <div className="card section-card">
         <h2>Registrar Novo Empréstimo</h2>
-        <form onSubmit={registrarEmprestimo} style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 200px' }}>
+        <form onSubmit={registrarEmprestimo} className="responsive-inline-form">
+          <div className="responsive-field">
             <label htmlFor="emprestimo-produto" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Produto ou equipamento</label>
             <input
               id="emprestimo-produto"
@@ -162,7 +162,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
             />
 
           </div>
-          <div style={{ flex: '1 1 200px' }}>
+          <div className="responsive-field">
             <label htmlFor="emprestimo-pessoa" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome da pessoa</label>
             <input
               id="emprestimo-pessoa"
@@ -174,7 +174,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
               required
             />
           </div>
-          <div style={{ flex: '0 0 120px' }}>
+          <div className="responsive-field responsive-field-quantity">
             <label htmlFor="emprestimo-quantidade" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Quantidade</label>
             <input
               id="emprestimo-quantidade"
@@ -186,13 +186,13 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
               min="1"
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }} disabled={salvando}>
+          <button type="submit" className="btn btn-primary responsive-form-submit" disabled={salvando}>
             {salvando ? 'Registrando...' : 'Registrar Empréstimo'}
           </button>
         </form>
       </div>
 
-      <div className="card" style={{ marginTop: '2rem' }}>
+      <div className="card section-card">
         <div className="loans-section-header">
           <div>
             <h2>Empréstimos Ativos</h2>
@@ -219,7 +219,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
             )}
           </div>
         </div>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="responsive-list">
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando empréstimos...</p>
           ) : emprestimos.length === 0 ? (
@@ -228,17 +228,17 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
             </p>
           ) : (
             emprestimos.map((emprestimo) => (
-              <div key={emprestimo.id} className="flex justify-between items-center" style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '4px solid var(--accent-warning)' }}>
-                <div>
+              <div key={emprestimo.id} className="responsive-list-row loan-list-row">
+                <div className="responsive-list-main">
                   <h4 style={{ fontSize: '1.2rem', color: 'var(--accent-warning)' }}>{emprestimo.item_nome}</h4>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '6px', flexWrap: 'wrap' }}>
+                  <div className="responsive-list-meta">
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}><strong>Pessoa:</strong> {emprestimo.pessoa}</p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}><strong>Qtde:</strong> {emprestimo.quantidade}</p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}><strong>Retirado em:</strong> {formatarData(emprestimo.data_emprestimo)}</p>
                   </div>
                 </div>
                 <button
-                  className="btn btn-outline"
+                  className="btn btn-outline responsive-row-action"
                   style={{ borderColor: 'var(--accent-success)', color: 'var(--accent-success)', padding: '0.5rem 1rem' }}
                   onClick={() => devolverEmprestimo(emprestimo.id)}
                   disabled={devolvendoId === emprestimo.id}
@@ -264,4 +264,3 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
     </>
   );
 }
-

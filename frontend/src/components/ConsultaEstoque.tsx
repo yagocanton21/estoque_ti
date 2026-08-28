@@ -40,7 +40,7 @@ export function ConsultaEstoque() {
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
 
   const carregarPagina = async (pagina: number, termoBusca = busca) => {
     setCarregando(true);
@@ -356,11 +356,11 @@ export function ConsultaEstoque() {
                 </label>
               </div>
 
-              <div className="edit-modal-actions" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <button type="button" className="btn btn-outline" style={{ color: '#dc3545', borderColor: '#dc3545' }} onClick={deletarItem} disabled={salvando}>
+              <div className="edit-modal-actions edit-modal-actions-split">
+                <button type="button" className="btn btn-outline danger-outline-button" onClick={deletarItem} disabled={salvando}>
                   Excluir Produto
                 </button>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="edit-modal-primary-actions">
                   <button type="button" className="btn btn-outline" onClick={() => setEdicao(null)}>Cancelar</button>
                   <button type="submit" className="btn btn-primary" disabled={salvando}>
                     {salvando ? 'Salvando...' : 'Salvar alterações'}
@@ -374,4 +374,3 @@ export function ConsultaEstoque() {
     </>
   );
 }
-

@@ -37,7 +37,7 @@ export function Estoque() {
   };
 
   return (
-    <div className="centered-form-page">
+    <div className="centered-form-page registration-page">
       <div className="page-introduction">
         <h1>Cadastrar Novo Produto</h1>
         <p>Informe os dados abaixo para adicionar um produto ao estoque.</p>
@@ -45,8 +45,8 @@ export function Estoque() {
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
-      <div className="card">
-        <form onSubmit={cadastrarProduto} className="simple-form">
+      <div className="card registration-card">
+        <form onSubmit={cadastrarProduto} className="simple-form registration-form">
           <label className="form-field" htmlFor="produto-nome">
             <span>Nome do produto</span>
             <input
@@ -57,6 +57,7 @@ export function Estoque() {
               placeholder="Ex: Teclado sem fio"
               required
               autoFocus
+              autoComplete="off"
             />
           </label>
 
@@ -70,6 +71,8 @@ export function Estoque() {
                 onChange={(evento) => setQuantidade(Number(evento.target.value))}
                 required
                 min="0"
+                step="1"
+                inputMode="numeric"
               />
               <small>Quantas unidades existem agora.</small>
             </label>
@@ -83,6 +86,8 @@ export function Estoque() {
                 onChange={(evento) => setQuantidadeMinima(Number(evento.target.value))}
                 required
                 min="0"
+                step="1"
+                inputMode="numeric"
               />
               <small>O sistema avisará quando chegar neste número.</small>
             </label>
@@ -96,4 +101,3 @@ export function Estoque() {
     </div>
   );
 }
-

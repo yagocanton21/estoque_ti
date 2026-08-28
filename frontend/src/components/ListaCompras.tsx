@@ -143,7 +143,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', gap: '1rem' }}>
+      <div className="page-action-header">
         <h1>Lista de Compras</h1>
         <button
           className="btn btn-outline"
@@ -156,10 +156,10 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
       {/* Formulário Superior (Horizontal) */}
-      <div className="card" style={{ marginTop: '2rem' }}>
+      <div className="card section-card">
         <h2>Adicionar Produto à Lista</h2>
-        <form onSubmit={adicionarAvulso} style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 2 }}>
+        <form onSubmit={adicionarAvulso} className="responsive-inline-form">
+          <div className="responsive-field">
             <label htmlFor="compra-produto" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do produto</label>
             <input 
               id="compra-produto"
@@ -171,7 +171,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               required
             />
           </div>
-          <div style={{ flex: 2 }}>
+          <div className="responsive-field">
             <label htmlFor="compra-link" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Link da loja (opcional)</label>
             <input 
               id="compra-link"
@@ -182,7 +182,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
             />
           </div>
-          <div style={{ flex: 1 }}>
+          <div className="responsive-field responsive-field-quantity">
             <label htmlFor="compra-quantidade" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Quantidade</label>
             <input 
               id="compra-quantidade"
@@ -193,16 +193,16 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               required min="1"
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }} disabled={salvando}>
+          <button type="submit" className="btn btn-primary responsive-form-submit" disabled={salvando}>
             {salvando ? 'Adicionando...' : 'Adicionar à Lista'}
           </button>
         </form>
       </div>
 
       {/* Lista Principal */}
-      <div className="card" style={{ marginTop: '2rem' }}>
+      <div className="card section-card">
         <h2>Produtos Pendentes para Compra</h2>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="responsive-list">
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando lista de compras...</p>
           ) : pendentes.length === 0 ? (
@@ -211,9 +211,18 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
             pendentes.map(item => (
               <div key={item.id} className="purchase-item-row">
                 <div className="purchase-item-info">
-                  <h4 style={{ fontSize: '1.2rem' }}>{item.nome}</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '4px' }}>Quantidade solicitada: {item.quantidade}</p>
-                  {item.item_id && <span className="badge badge-danger" style={{ display: 'inline-block', marginTop: '8px' }}>Gerado Automaticamente por Falta de Estoque</span>}
+                  <div className="purchase-item-heading">
+                    <h4>{item.nome}</h4>
+                    <span className="purchase-item-quantity">{item.quantidade} un.</span>
+                  </div>
+                  {item.item_id && (
+                    <span
+                      className="badge badge-danger purchase-auto-badge"
+                      title="Gerado automaticamente por falta de estoque"
+                    >
+                      Reposição automática
+                    </span>
+                  )}
                 </div>
                 <div className="purchase-item-actions">
                   {item.link && (
@@ -253,7 +262,7 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
           )}
         </div>
         {totalPages > 1 && (
-          <div className="inventory-pagination" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
+          <div className="inventory-pagination">
             <button
               className="btn btn-outline"
               disabled={page === 1}

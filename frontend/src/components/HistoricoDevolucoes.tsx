@@ -51,7 +51,7 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', gap: '1rem' }}>
+      <div className="page-action-header">
         <h1>Histórico de Devoluções</h1>
         <button
           className="btn btn-outline"
@@ -68,19 +68,19 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
-      <div className="card" style={{ marginTop: '2rem' }}>
+      <div className="card section-card">
         <h2>Produtos e Equipamentos Devolvidos</h2>
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="responsive-list compact-list">
           {carregando ? (
             <p style={{ color: 'var(--text-muted)' }}>Carregando histórico...</p>
           ) : historico.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Nenhuma devolução foi registrada ainda.</p>
           ) : (
             paginaAtual.map((emprestimo) => (
-              <div key={emprestimo.id} className="flex justify-between items-center" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', opacity: 0.8 }}>
-                <div>
+              <div key={emprestimo.id} className="responsive-list-row returned-list-row">
+                <div className="responsive-list-main">
                   <h4 style={{ fontSize: '1.1rem' }}>{emprestimo.item_nome}</h4>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <div className="responsive-list-meta">
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Pessoa: {emprestimo.pessoa}</p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Qtde: {emprestimo.quantidade}</p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Retirado em: {formatarData(emprestimo.data_emprestimo)}</p>
@@ -94,7 +94,7 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
         </div>
 
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+          <div className="inventory-pagination">
             <button
               className="btn btn-outline"
               onClick={() => setCurrentPage((pagina) => Math.max(pagina - 1, 1))}
@@ -118,4 +118,3 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
     </>
   );
 }
-

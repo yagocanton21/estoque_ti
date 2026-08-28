@@ -78,7 +78,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
       
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-3 dashboard-summary-grid">
         <div className="card">
           <h3 style={{ color: 'var(--text-muted)' }}>Total de Produtos</h3>
           <p style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '0.5rem 0' }}>{itens.length}</p>
@@ -101,20 +101,20 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </button>
         </div>
         
-        <div className="card" style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
-          <div className="flex justify-between items-center">
+        <div className="card dashboard-critical-card">
+          <div className="flex justify-between items-center dashboard-card-header">
             <h2>Produtos no Limite ou Abaixo do Mínimo</h2>
             <button className="btn btn-primary" onClick={() => onNavigate('estoque_critico')}>
               {itensCriticos.length > 5 ? `Ver todos os ${itensCriticos.length}` : 'Ver Estoque'}
             </button>
           </div>
           
-          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="dashboard-critical-list">
             {itensCriticos.length === 0 ? (
               <p style={{ color: 'var(--text-muted)' }}>Nenhum produto precisa de reposição no momento.</p>
             ) : (
               itensCriticosEmDestaque.map(item => (
-                <div key={item.id} className="flex justify-between items-center" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                <div key={item.id} className="dashboard-critical-item">
                   <div>
                     <h4 style={{ fontSize: '1.1rem' }}>{item.nome}</h4>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Atual: {item.quantidade} · Mínimo ideal: {item.quantidade_minima}</p>
@@ -127,7 +127,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             )}
           </div>
           {itensCriticos.length > 5 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem', textAlign: 'center' }}>
+            <p className="dashboard-critical-note">
               Mostrando os 5 itens mais urgentes de {itensCriticos.length} produtos com estoque baixo.
             </p>
           )}
@@ -136,4 +136,3 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     </>
   );
 }
-

@@ -115,7 +115,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
+      <div className="page-action-header">
         <h1>Histórico de Compras</h1>
         <button 
           className="btn btn-outline" 
@@ -250,7 +250,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
         </div>
         
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+          <div className="inventory-pagination">
             <button className="btn btn-outline" onClick={prevPage} disabled={currentPage === 1} style={{ padding: '0.5rem 1rem' }}>
               Anterior
             </button>

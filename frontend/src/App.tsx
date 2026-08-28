@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { Dashboard } from './components/Dashboard';
 import { Estoque } from './components/Estoque';
@@ -17,6 +17,25 @@ type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_esto
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const closeMenus = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setSettingsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', closeMenus);
+    return () => window.removeEventListener('keydown', closeMenus);
+  }, []);
+
+  const navigateTo = (tab: Tab) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+    setSettingsOpen(false);
+  };
 
   const renderTab = () => {
     switch(activeTab) {
@@ -37,11 +56,29 @@ function App() {
 
   return (
     <>
-      <div style={{ position: 'fixed', top: '1.5rem', right: '2rem', zIndex: 1000 }}>
+      <header className="mobile-topbar">
+        <button
+          type="button"
+          className="mobile-menu-button"
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label="Abrir menu de navegação"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="main-navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <img src="/logo.png" alt="" className="mobile-logo-image" />
+        <span>Estoque TI</span>
+      </header>
+
+      <div className="history-shortcuts">
         <button 
           className="btn btn-outline"
           onClick={() => setSettingsOpen(!settingsOpen)}
-          style={{ padding: '0.6rem', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          aria-expanded={settingsOpen}
+          aria-controls="history-shortcuts-menu"
           title="Abrir atalhos de históricos"
           aria-label="Abrir atalhos de históricos"
         >
@@ -52,41 +89,23 @@ function App() {
         </button>
         
         {settingsOpen && (
-          <div style={{ 
-            position: 'absolute', top: '3.5rem', right: '0', 
-            background: 'var(--bg-secondary)', backdropFilter: 'blur(10px)', 
-            border: '1px solid var(--glass-border)', borderRadius: '8px', 
-            padding: '0.5rem', minWidth: '220px', boxShadow: '0 8px 16px rgba(0,0,0,0.5)',
-            display: 'flex', flexDirection: 'column', gap: '0.25rem'
-          }}>
-            <h3 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem', padding: '0.25rem 0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Históricos</h3>
+          <div id="history-shortcuts-menu" className="history-shortcuts-menu">
+            <h3>Históricos</h3>
             <button 
               className="btn btn-outline"
-              style={{ width: '100%', textAlign: 'left', justifyContent: 'flex-start', padding: '0.5rem', border: 'none', background: 'rgba(255,255,255,0.05)' }}
-              onClick={() => {
-                setActiveTab('historico_compras');
-                setSettingsOpen(false);
-              }}
+              onClick={() => navigateTo('historico_compras')}
             >
               <span style={{ marginRight: '8px' }}>📜</span> Histórico de Compras
             </button>
             <button
               className="btn btn-outline"
-              style={{ width: '100%', textAlign: 'left', justifyContent: 'flex-start', padding: '0.5rem', border: 'none', background: 'rgba(255,255,255,0.05)' }}
-              onClick={() => {
-                setActiveTab('historico_devolucoes');
-                setSettingsOpen(false);
-              }}
+              onClick={() => navigateTo('historico_devolucoes')}
             >
               <span style={{ marginRight: '8px' }}>↩️</span> Histórico de Devoluções
             </button>
             <button
               className="btn btn-outline"
-              style={{ width: '100%', textAlign: 'left', justifyContent: 'flex-start', padding: '0.5rem', border: 'none', background: 'rgba(255,255,255,0.05)' }}
-              onClick={() => {
-                setActiveTab('historico_ajustes');
-                setSettingsOpen(false);
-              }}
+              onClick={() => navigateTo('historico_ajustes')}
             >
               <span style={{ marginRight: '8px' }}>±</span> Histórico de Ajustes
             </button>
@@ -94,55 +113,74 @@ function App() {
         )}
       </div>
 
-      <aside className="sidebar">
-        <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img 
-            src="/logo.png" 
-            alt="Logo Arthi" 
-            style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'contain', backgroundColor: 'white', padding: '4px' }} 
-          />
-          <span style={{ fontSize: '1.2rem' }}>Estoque TI</span>
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          className="navigation-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Fechar menu de navegação"
+        />
+      )}
+
+      <aside id="main-navigation" className={`sidebar${mobileMenuOpen ? ' sidebar-open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="logo">
+            <img
+              src="/logo.png"
+              alt="Logo Arthi"
+              className="sidebar-logo-image"
+            />
+            <span>Estoque TI</span>
+          </div>
+          <button
+            type="button"
+            className="sidebar-close"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Fechar menu de navegação"
+          >
+            ×
+          </button>
         </div>
         <nav>
           <button 
             className={activeTab === 'dashboard' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => navigateTo('dashboard')}
           >
             Visão Geral
           </button>
           <button 
             className={activeTab === 'consulta_estoque' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('consulta_estoque')}
+            onClick={() => navigateTo('consulta_estoque')}
           >
             Consultar Produtos
           </button>
           <button 
             className={activeTab === 'cadastro_estoque' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('cadastro_estoque')}
+            onClick={() => navigateTo('cadastro_estoque')}
           >
             Cadastrar Produto
           </button>
           <button 
             className={activeTab === 'movimentacoes' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('movimentacoes')}
+            onClick={() => navigateTo('movimentacoes')}
           >
             Entrada / Saída
           </button>
           <button 
             className={activeTab === 'emprestimos' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('emprestimos')}
+            onClick={() => navigateTo('emprestimos')}
           >
             Empréstimos
           </button>
           <button 
             className={activeTab === 'compras' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('compras')}
+            onClick={() => navigateTo('compras')}
           >
             Lista de Compras
           </button>
           <button
             className={activeTab === 'historicos' || activeTab === 'historico_compras' || activeTab === 'historico_devolucoes' || activeTab === 'historico_ajustes' ? 'btn btn-primary' : 'btn btn-outline'}
-            onClick={() => setActiveTab('historicos')}
+            onClick={() => navigateTo('historicos')}
           >
             Históricos
           </button>
@@ -157,4 +195,3 @@ function App() {
 }
 
 export default App;
-
