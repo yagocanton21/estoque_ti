@@ -1952,13 +1952,14 @@ main.container {
   }
 
   .purchase-item-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     width: 100%;
   }
 
   .purchase-item-action {
-    width: 100%;
+    flex: 1 1 auto;
+    width: auto;
   }
 
   .critical-product {
@@ -2465,7 +2466,8 @@ main.container {
   }
 
   .purchase-item-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
