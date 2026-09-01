@@ -1872,7 +1872,6 @@ main.container {
     width: min(100%, 320px);
   }
 
-  .product-grid,
   .edit-form-grid {
     grid-template-columns: 1fr;
   }
