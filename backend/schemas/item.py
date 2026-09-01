@@ -6,6 +6,7 @@ class ItemCreate(BaseModel):           # entrada (POST/PUT)
     modelo: str | None = None
     quantidade: int = Field(ge=0, description="Quantidade não pode ser negativa")
     quantidade_minima: int | None = Field(default=0, ge=0, description="Mínimo não pode ser negativo")
+    foto_url: str | None = None
 
 class ItemResponse(ItemCreate):        # saída (GET)
     id: int

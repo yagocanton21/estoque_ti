@@ -1,8 +1,13 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from routers import itens, movimentacoes, lista_compras, emprestimos
 from fastapi.middleware.cors import CORSMiddleware
+import os
+
+os.makedirs("/data/uploads", exist_ok=True)
 
 app = FastAPI()
+app.mount("/uploads", StaticFiles(directory="/data/uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

@@ -9,6 +9,7 @@ interface Item {
   modelo: string | null;
   quantidade: number;
   quantidade_minima: number | null;
+  foto_url?: string;
 }
 
 interface EdicaoItem {
@@ -18,6 +19,8 @@ interface EdicaoItem {
   modelo: string;
   quantidade: number;
   quantidade_minima: number;
+  foto_url?: string;
+  foto_arquivo?: File;
 }
 
 type FiltroEstoque = 'todos' | 'normal' | 'limite' | 'abaixo';
@@ -96,6 +99,8 @@ export function ConsultaEstoque() {
       modelo: item.modelo ?? '',
       quantidade: item.quantidade,
       quantidade_minima: item.quantidade_minima ?? 0,
+      foto_url: item.foto_url,
+      foto_arquivo: undefined,
     });
   };
 
@@ -111,7 +116,17 @@ export function ConsultaEstoque() {
         modelo: edicao.modelo || null,
         quantidade: edicao.quantidade,
         quantidade_minima: edicao.quantidade_minima,
+        foto_url: edicao.foto_url,
       });
+      
+      if (edicao.foto_arquivo) {
+        const formData = new FormData();
+        formData.append('file', edicao.foto_arquivo);
+        await axios.post(`/api/itens/${edicao.id}/foto`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+      
       setEdicao(null);
       await carregarPagina(page);
       setFeedback({ type: 'success', text: `Produto “${edicao.nome}” atualizado com sucesso.` });
@@ -243,7 +258,20 @@ export function ConsultaEstoque() {
 
             return (
               <article key={item.id} className={`product-card ${critico ? 'product-card-critical' : ''}`}>
-                <div className="product-card-header">
+                
+                {item.foto_url ? (
+                  <img 
+                    src={`/api${item.foto_url}`} 
+                    alt={item.nome} 
+                    style={{ width: '100%', height: '160px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f5f5f5', marginBottom: '12px', padding: '8px' }} 
+                  />
+                ) : (
+                  <div style={{ width: '100%', height: '160px', backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', borderRadius: '8px', marginBottom: '12px' }}>
+                    Sem foto
+                  </div>
+                )}
+                
+                <div className="product-card-header" style={{ borderRadius: 0 }}>
                   <span className="product-id">#{item.id}</span>
                   <span className={critico ? 'badge badge-danger' : 'badge badge-success'}>
                     {critico ? 'Estoque baixo' : 'Estoque normal'}
@@ -352,6 +380,26 @@ export function ConsultaEstoque() {
                     value={edicao.quantidade_minima}
                     onChange={(evento) => setEdicao({ ...edicao, quantidade_minima: Number(evento.target.value) })}
                     required
+                  />
+                </label>
+                <label className="form-field form-field-wide">
+                  <span>Foto do produto</span>
+                  
+                  {edicao.foto_url && !edicao.foto_arquivo && (
+                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <img src={`/api${edicao.foto_url}`} alt="Atual" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                      <small>O produto já possui uma foto. Selecione um novo arquivo apenas se quiser substituí-la.</small>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(evento) => {
+                      if (evento.target.files && evento.target.files.length > 0) {
+                        setEdicao({ ...edicao, foto_arquivo: evento.target.files[0] });
+                      }
+                    }}
                   />
                 </label>
               </div>

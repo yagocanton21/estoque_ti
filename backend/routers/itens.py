@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+import os
+from PIL import Image
 from sqlalchemy.orm import Session
 from database import get_db
 from models.item import Item
@@ -111,3 +113,31 @@ def deletar_item(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Item possui movimentações registradas e não pode ser deletado")
     db.delete(db_item)
     db.commit()
+
+@router.post("/{id}/foto", response_model=ItemResponse)
+def upload_foto_item(id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    db_item = db.query(Item).filter(Item.id == id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+    
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="O arquivo deve ser uma imagem")
+    
+    os.makedirs("/data/uploads", exist_ok=True)
+    # Garante extensão jpg
+    safe_filename = f"{id}_foto.jpg"
+    filepath = os.path.join("/data/uploads", safe_filename)
+    
+    try:
+        image = Image.open(file.file)
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        image.thumbnail((800, 800))
+        image.save(filepath, "JPEG", quality=85, optimize=True)
+        
+        db_item.foto_url = f"/uploads/{safe_filename}"
+        db.commit()
+        db.refresh(db_item)
+        return db_item
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao processar imagem: {str(e)}")
