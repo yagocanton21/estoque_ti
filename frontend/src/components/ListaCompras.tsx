@@ -103,21 +103,55 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   };
 
   const marcarComprado = async (item: ListaComprasItem) => {
+    let finalItemId = item.item_id;
+
     setProcessandoId(item.id);
-    setFeedback({ type: 'loading', text: 'Marcando produto como comprado...' });
+    setFeedback({ type: 'loading', text: 'Verificando cadastro...' });
+
     try {
+      if (!finalItemId) {
+        // Remove espaços extras no meio e nas pontas, e deixa minúsculo
+        const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
+        const nomeLimpo = normalizeName(item.nome);
+
+        // Busca com o nome já sem duplos espaços, pro backend conseguir achar a palavra
+        const resBusca = await axios.get(`/api/itens/buscar?q=${encodeURIComponent(item.nome.trim().replace(/\s+/g, ' '))}`);
+        
+        const itemEncontrado = resBusca.data.find((i: any) => normalizeName(i.nome) === nomeLimpo);
+        if (itemEncontrado) {
+          finalItemId = itemEncontrado.id;
+        }
+      }
+
+      setFeedback({ type: 'loading', text: 'Registrando compra...' });
+
+      if (finalItemId) {
+        await axios.post('/api/movimentacoes/', {
+          item_id: finalItemId,
+          tipo: 'entrada',
+          quantidade: item.quantidade,
+          observacao: 'Compra (Lista de Compras)'
+        });
+      }
+
       await axios.put(`/api/lista-compras/${item.id}`, {
         nome: item.nome,
         quantidade: item.quantidade,
-        item_id: item.item_id,
+        item_id: finalItemId,
         comprado: true,
         link: item.link
       });
+
       await carregarLista();
-      setFeedback({ type: 'success', text: `“${item.nome}” foi marcado como comprado.` });
+      
+      if (finalItemId) {
+        setFeedback({ type: 'success', text: `“${item.nome}” foi processado com sucesso e adicionado ao estoque.` });
+      } else {
+        setFeedback({ type: 'success', text: `Produto sem cadastro, apenas retirado da lista.` });
+      }
     } catch (error: any) {
-      console.error('Erro ao marcar como comprado:', error);
-      setFeedback({ type: 'error', text: error.response?.data?.detail || error.message || 'Não foi possível atualizar o produto.' });
+      console.error('Erro ao processar compra:', error);
+      setFeedback({ type: 'error', text: error.response?.data?.detail || error.message || 'Não foi possível concluir o processo.' });
     } finally {
       setProcessandoId(null);
     }
