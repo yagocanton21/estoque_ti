@@ -352,17 +352,20 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               <div key={item.id} className="purchase-item-row">
                 <div className="purchase-item-info">
                   <div className="purchase-item-heading">
-                    <h4>{item.nome}</h4>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', margin: 0 }}>
+                      {item.nome}
+                      {item.item_id && (
+                        <span
+                          className="badge badge-success"
+                          style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', marginTop: 0 }}
+                          title="Este item está vinculado corretamente ao estoque"
+                        >
+                          Vinculado
+                        </span>
+                      )}
+                    </h4>
                     <span className="purchase-item-quantity">{item.quantidade} un.</span>
                   </div>
-                  {item.item_id && (
-                    <span
-                      className="badge badge-danger purchase-auto-badge"
-                      title="Gerado automaticamente por falta de estoque"
-                    >
-                      Reposição automática
-                    </span>
-                  )}
                 </div>
                 <div className="purchase-item-actions">
                   <button
