@@ -26,6 +26,11 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [quantidade, setQuantidade] = useState(1);
   const [link, setLink] = useState('');
   const [salvando, setSalvando] = useState(false);
+
+  // Estados para o combobox (auto-completar)
+  const [sugestoes, setSugestoes] = useState<{id: number, nome: string}[]>([]);
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
+  const [itemIdSelecionado, setItemIdSelecionado] = useState<number | null>(null);
   const [processandoId, setProcessandoId] = useState<number | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -78,19 +83,42 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     return () => controller.abort();
   }, [page]);
 
+  // Debounce e busca de sugestões
+  useEffect(() => {
+    if (!nome.trim() || itemIdSelecionado) {
+      setSugestoes([]);
+      setMostrarSugestoes(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const query = encodeURIComponent(nome.trim().replace(/\s+/g, ' '));
+        const res = await axios.get(`/api/itens/buscar?q=${query}&limit=5`);
+        setSugestoes(res.data);
+        setMostrarSugestoes(res.data.length > 0);
+      } catch (err) {
+        console.error('Erro ao buscar sugestões', err);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [nome, itemIdSelecionado]);
+
   const adicionarAvulso = async (e: React.FormEvent) => {
     e.preventDefault();
     setSalvando(true);
     setFeedback({ type: 'loading', text: 'Adicionando produto à lista...' });
     try {
       await axios.post('/api/lista-compras/', {
-        nome,
+        nome: nome.trim().replace(/\s+/g, ' '),
         quantidade,
-        item_id: null,
+        item_id: itemIdSelecionado,
         link: link || null
       });
       setNome('');
       setQuantidade(1);
+      setItemIdSelecionado(null);
       setLink('');
       await carregarLista();
       setFeedback({ type: 'success', text: `Produto “${nome}” adicionado à lista de compras.` });
@@ -223,20 +251,65 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
       {/* Formulário Superior (Horizontal) */}
-      <div className="card section-card">
+      <div className="card section-card" style={{ zIndex: 50, position: 'relative' }}>
         <h2>Adicionar Produto à Lista</h2>
         <form onSubmit={adicionarAvulso} className="responsive-inline-form">
-          <div className="responsive-field">
+          <div className="responsive-field" style={{ position: 'relative' }}>
             <label htmlFor="compra-produto" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do produto</label>
             <input 
               id="compra-produto"
               type="text" 
               value={nome}
-              onChange={e => setNome(e.target.value)}
+              onChange={e => {
+                setNome(e.target.value);
+                if (itemIdSelecionado) setItemIdSelecionado(null);
+              }}
+              onFocus={() => { if (sugestoes.length > 0) setMostrarSugestoes(true); }}
+              onBlur={() => setTimeout(() => setMostrarSugestoes(false), 200)}
               placeholder="Ex: Teclado Mecânico"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
               required
             />
+            {mostrarSugestoes && (
+              <ul style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: 'var(--bg-dark)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '8px',
+                marginTop: '4px',
+                listStyle: 'none',
+                padding: '0.5rem 0',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                zIndex: 9999,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              }}>
+                {sugestoes.map(s => (
+                  <li 
+                    key={s.id}
+                    onClick={() => {
+                      setNome(s.nome);
+                      setItemIdSelecionado(s.id);
+                      setMostrarSugestoes(false);
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      color: 'white',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    {s.nome}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="responsive-field">
             <label htmlFor="compra-link" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Link da loja (opcional)</label>
