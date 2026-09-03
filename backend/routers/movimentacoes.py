@@ -29,6 +29,8 @@ def montar_resposta(movimentacao: Movimentacao, alerta: str | None = None):
         quantidade_anterior=movimentacao.quantidade_anterior,
         quantidade_resultante=movimentacao.quantidade_resultante,
         motivo=movimentacao.motivo,
+        entregue_para=movimentacao.entregue_para,
+        observacao=movimentacao.observacao,
         data=movimentacao.data,
         alerta=alerta,
     )

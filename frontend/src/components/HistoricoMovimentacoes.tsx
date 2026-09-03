@@ -13,6 +13,8 @@ interface MovimentacaoEstoque {
   quantidade_anterior: number | null;
   quantidade_resultante: number | null;
   data: string;
+  entregue_para: string | null;
+  observacao: string | null;
 }
 
 interface HistoricoMovimentacoesProps {
@@ -152,6 +154,22 @@ export function HistoricoMovimentacoes({ onNavigate }: HistoricoMovimentacoesPro
                   <span>Saldo do estoque</span>
                   <p>{movimentacao.quantidade_anterior ?? '—'} → {movimentacao.quantidade_resultante ?? '—'}</p>
                 </div>
+                {(movimentacao.entregue_para || movimentacao.observacao) && (
+                  <div className="movement-history-reason" style={{ width: '100%', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)', flexBasis: '100%' }}>
+                    {movimentacao.entregue_para && (
+                      <p style={{ marginBottom: '4px' }}>
+                        <strong style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Entregue para: </strong> 
+                        {movimentacao.entregue_para}
+                      </p>
+                    )}
+                    {movimentacao.observacao && (
+                      <p>
+                        <strong style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Observação: </strong> 
+                        {movimentacao.observacao}
+                      </p>
+                    )}
+                  </div>
+                )}
               </article>
             );
           })}

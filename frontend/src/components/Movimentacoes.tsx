@@ -18,6 +18,8 @@ export function Movimentacoes() {
   const [quantidade, setQuantidade] = useState(1);
   const [novaQuantidade, setNovaQuantidade] = useState(0);
   const [motivo, setMotivo] = useState('');
+  const [entreguePara, setEntreguePara] = useState('');
+  const [observacao, setObservacao] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
@@ -76,6 +78,8 @@ export function Movimentacoes() {
           item_id: produtoSelecionado.id,
           tipo,
           quantidade,
+          entregue_para: tipo === 'saida' && entreguePara.trim() ? entreguePara : null,
+          observacao: observacao.trim() ? observacao : null,
         });
         setFeedback({
           type: 'success',
@@ -88,6 +92,8 @@ export function Movimentacoes() {
       setQuantidade(1);
       setNovaQuantidade(0);
       setMotivo('');
+      setEntreguePara('');
+      setObservacao('');
     } catch (error: any) {
       console.error('Erro ao registrar movimentação:', error);
       setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível registrar. Confira os dados e tente novamente.' });
@@ -109,6 +115,8 @@ export function Movimentacoes() {
     setBusca('');
     setSugestoes([]);
     setNovaQuantidade(0);
+    setEntreguePara('');
+    setObservacao('');
   };
 
   return (
@@ -213,17 +221,47 @@ export function Movimentacoes() {
               )}
             </>
           ) : (
-            <label className="form-field" htmlFor="movimento-quantidade">
-              <span>Quantidade</span>
-              <input
-                id="movimento-quantidade"
-                type="number"
-                value={quantidade}
-                onChange={(evento) => setQuantidade(Number(evento.target.value))}
-                required
-                min="1"
-              />
-            </label>
+            <>
+              <label className="form-field" htmlFor="movimento-quantidade">
+                <span>Quantidade</span>
+                <input
+                  id="movimento-quantidade"
+                  type="number"
+                  value={quantidade}
+                  onChange={(evento) => setQuantidade(Number(evento.target.value))}
+                  required
+                  min="1"
+                />
+              </label>
+
+              {tipo === 'saida' && (
+                <label className="form-field" htmlFor="movimento-entregue-para">
+                  <span>Entregue para</span>
+                  <input
+                    id="movimento-entregue-para"
+                    type="text"
+                    value={entreguePara}
+                    onChange={(evento) => setEntreguePara(evento.target.value)}
+                    placeholder="Ex: João da Silva - Sala 3"
+                    maxLength={100}
+                  />
+                  <small>Opcional. Registre quem retirou ou para quem foi entregue.</small>
+                </label>
+              )}
+
+              <label className="form-field" htmlFor="movimento-observacao">
+                <span>Observação</span>
+                <textarea
+                  id="movimento-observacao"
+                  value={observacao}
+                  onChange={(evento) => setObservacao(evento.target.value)}
+                  placeholder="Ex: Utilizado no projeto X"
+                  rows={2}
+                  maxLength={300}
+                />
+                <small>Opcional. Adicione detalhes extras sobre esta movimentação.</small>
+              </label>
+            </>
           )}
 
           <button type="submit" className="btn btn-primary primary-form-action" disabled={salvando}>

@@ -8,6 +8,8 @@ class MovimentacaoCreate(BaseModel):
     item_id: int
     tipo: Literal["entrada", "saida"]
     quantidade: int = Field(gt=0, description="Quantidade deve ser maior que zero")
+    entregue_para: str | None = Field(default=None, max_length=150)
+    observacao: str | None = Field(default=None, max_length=500)
 
 
 class AjusteEstoqueCreate(BaseModel):
@@ -33,6 +35,8 @@ class MovimentacaoResponse(BaseModel):
     quantidade_anterior: int | None
     quantidade_resultante: int | None
     motivo: str | None
+    entregue_para: str | None = None
+    observacao: str | None = None
     data: datetime
     alerta: str | None = None
 
