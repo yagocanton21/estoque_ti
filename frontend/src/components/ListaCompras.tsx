@@ -352,12 +352,12 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
               <div key={item.id} className="purchase-item-row">
                 <div className="purchase-item-info">
                   <div className="purchase-item-heading">
-                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', margin: 0 }}>
+                    <h4 style={{ margin: 0, lineHeight: '1.5' }}>
                       {item.nome}
                       {item.item_id && (
                         <span
                           className="badge badge-success"
-                          style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', marginTop: 0 }}
+                          style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', marginLeft: '0.5rem', verticalAlign: 'middle', display: 'inline-block' }}
                           title="Este item está vinculado corretamente ao estoque"
                         >
                           Vinculado
