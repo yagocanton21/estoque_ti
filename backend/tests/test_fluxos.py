@@ -296,7 +296,7 @@ def test_pdf_do_orcamento_fica_disponivel_no_historico(client):
     assert envio.status_code == 200
     assert envio.json()["tem_pdf"] is True
 
-    client.put(f"/lista-compras/{item_lista_id}", json={"comprado": True})
+    client.put(f"/lista-compras/{item_lista_id}", json={"status": "entregue"})
     historico = client.get("/lista-compras/")
     registro = historico.json()[0]
     assert registro["tem_pdf"] is True

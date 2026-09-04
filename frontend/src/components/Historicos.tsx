@@ -33,7 +33,7 @@ export function Historicos({ onNavigate }: HistoricosProps) {
           <span className="history-option-icon" aria-hidden="true">✓</span>
           <span>
             <strong>Compras concluídas</strong>
-            <small>Veja os produtos que já foram comprados.</small>
+            <small>Veja os produtos que já foram entregues (finalizados).</small>
           </span>
           <span aria-hidden="true">→</span>
         </button>

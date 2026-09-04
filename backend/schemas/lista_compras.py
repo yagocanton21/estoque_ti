@@ -6,7 +6,7 @@ class ListaComprasBase(BaseModel):
     item_id: Optional[int] = Field(default=None, description="ID do item vinculado no estoque (opcional)")
     nome: str = Field(..., min_length=1, description="Nome do item para comprar")
     quantidade: int = Field(default=1, gt=0, description="Quantidade deve ser maior que zero")
-    comprado: bool = False
+    status: str = Field(default="pendente", description="Status da compra: pendente, comprado, entregue, cancelado")
     link: Optional[str] = Field(default=None, description="Link do produto")
 
 class ListaComprasCreate(ListaComprasBase):
@@ -15,7 +15,7 @@ class ListaComprasCreate(ListaComprasBase):
 class ListaComprasUpdate(BaseModel):
     nome: Optional[str] = None
     quantidade: Optional[int] = Field(default=None, gt=0)
-    comprado: Optional[bool] = None
+    status: Optional[str] = None
     link: Optional[str] = None
     data_compra: Optional[datetime] = None
 

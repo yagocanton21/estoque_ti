@@ -42,7 +42,7 @@ def listar_itens_compras(db: Session = Depends(get_db)):
 
 @router.get("/pendentes/paginado", response_model=PaginatedListaComprasResponse)
 def listar_pendentes_paginado(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    consulta = consulta_com_orcamentos(db).filter(ListaCompras.comprado.is_(False))
+    consulta = consulta_com_orcamentos(db).filter(ListaCompras.status.in_(["pendente", "comprado"]))
     total = consulta.count()
     items = consulta.offset(skip).limit(limit).all()
     return {"total": total, "items": items}
@@ -71,11 +71,11 @@ def atualizar_item_compra(id: int, item: ListaComprasUpdate, db: Session = Depen
     # Atualiza apenas os campos enviados, ignorando os que não foram passados (exclude_unset=True)
     update_data = item.model_dump(exclude_unset=True)
     
-    # Se está marcando como comprado e não estava antes, registra a data
-    if update_data.get("comprado") is True and not db_item.comprado:
+    # Se está marcando como comprado/entregue e não estava antes, registra a data
+    if update_data.get("status") in ["comprado", "entregue"] and db_item.status not in ["comprado", "entregue"]:
         db_item.data_compra = datetime.now(timezone.utc)
-    # Se está desmarcando, apaga a data
-    elif update_data.get("comprado") is False:
+    # Se está voltando para pendente/cancelado, apaga a data
+    elif update_data.get("status") in ["pendente", "cancelado"]:
         db_item.data_compra = None
         
     for campo, valor in update_data.items():

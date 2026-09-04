@@ -7,7 +7,7 @@ interface ListaComprasItem {
   item_id: number | null;
   nome: string;
   quantidade: number;
-  comprado: boolean;
+  status: string;
   link: string | null;
   data_compra: string | null;
   tem_pdf: boolean;
@@ -51,7 +51,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
       const res = await axios.get('/api/lista-compras/');
       const dados: ListaComprasItem[] = res.data;
       setLista(dados);
-      const totalConcluidos = dados.filter(item => item.comprado).length;
+      const totalConcluidos = dados.filter(item => item.status === 'entregue').length;
       const ultimaPaginaValida = Math.max(1, Math.ceil(totalConcluidos / itemsPerPage));
       setCurrentPage(paginaAtual => Math.min(paginaAtual, ultimaPaginaValida));
     } catch (error) {
@@ -78,7 +78,7 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
     }
   };
 
-  const concluidos = lista.filter(i => i.comprado);
+  const concluidos = lista.filter(i => i.status === 'entregue');
 
   // Apply search filter
   const termoBusca = busca.trim().toLowerCase();

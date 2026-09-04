@@ -13,7 +13,7 @@ interface ListaComprasItem {
   id: number;
   nome: string;
   quantidade: number;
-  comprado: boolean;
+  status: string;
 }
 
 interface DashboardProps {
@@ -32,7 +32,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         setItens(resItens.data);
 
         const resLista = await axios.get('/api/lista-compras/');
-        setListaCompras(resLista.data.filter((i: ListaComprasItem) => !i.comprado));
+        setListaCompras(resLista.data.filter((i: ListaComprasItem) => i.status === 'pendente' || i.status === 'comprado'));
         setFeedback(null);
       } catch (error) {
         console.error('Erro ao buscar dados do dashboard:', error);

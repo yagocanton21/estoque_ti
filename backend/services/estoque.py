@@ -10,7 +10,7 @@ def checar_estoque_minimo_e_alertar(db: Session, item: Item) -> str | None:
     # 2. Se caiu aqui, o estoque tá baixo! Vamos ver se já tá na lista de compras
     item_na_lista = db.query(ListaCompras).filter(
         ListaCompras.item_id == item.id, 
-        ListaCompras.comprado == False
+        ListaCompras.status.in_(["pendente", "comprado"])
     ).first()
     
     # 3. Se não tiver na lista, a gente adiciona

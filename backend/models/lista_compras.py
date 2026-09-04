@@ -9,7 +9,7 @@ class ListaCompras(Base):
     item_id    = Column(Integer, ForeignKey("itens.id"), nullable=True)
     nome       = Column(String, nullable=False)
     quantidade = Column(Integer, nullable=False, default=1)
-    comprado   = Column(Boolean, nullable=False, default=False)
+    status     = Column(String, nullable=False, default="pendente")
     link       = Column(String, nullable=True)
     data_compra = Column(DateTime, nullable=True)
     orcamento_pdf = deferred(Column(LargeBinary, nullable=True))
