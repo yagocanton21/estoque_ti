@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import './App.css';
 import { Dashboard } from './components/Dashboard';
 import { Estoque } from './components/Estoque';
 import { ConsultaEstoque } from './components/ConsultaEstoque';

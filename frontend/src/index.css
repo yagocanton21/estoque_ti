@@ -1504,113 +1504,387 @@ main.container {
   padding: 0 !important;
 }
 
-.purchase-item-row {
-  display: grid;
-  grid-template-columns: 1fr 70px 230px;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.purchase-item-row:hover {
-  border-color: rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.purchase-item-info {
-  flex: 1 1 250px;
-  min-width: 200px;
-}
-
-.purchase-item-heading {
+/* ==========================================================================
+   Lista de Compras - Cards e Ações Modernizados
+   ========================================================================== */
+.purchase-card {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.15rem 1.35rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left-width: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.purchase-card:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.purchase-card-pending {
+  border-left-color: var(--accent-warning);
+}
+
+.purchase-card-bought {
+  border-left-color: #38bdf8;
+}
+
+.purchase-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.purchase-card-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.purchase-item-heading h4 {
-  min-width: 0;
-  font-size: 1.1rem;
-  line-height: 1.35;
+.purchase-card-title-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+}
+
+.purchase-card-title {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
-.purchase-item-quantity {
-  justify-self: center;
-  width: 75px;
-  text-align: center;
-  padding: 0.3rem 0.55rem;
-  border: 1px solid rgba(96, 165, 250, 0.25);
-  border-radius: 999px;
-  background: rgba(96, 165, 250, 0.08);
-  color: #bfdbfe;
-  font-size: 0.75rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.purchase-auto-badge {
+.purchase-badges-row {
   display: inline-flex;
-  max-width: 100%;
-  margin-top: 0.6rem;
-  white-space: normal;
-}
-
-.purchase-item-actions {
-  display: flex;
-  flex: 1 1 auto;
   align-items: center;
-  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.45rem;
 }
 
-.purchase-item-action {
-  min-height: 36px;
-  padding: 0.45rem 0.72rem;
-  border-radius: 7px;
-  font-size: 0.78rem;
+.purchase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
-.purchase-action-link {
-  color: #cbd5e1;
+.purchase-badge-linked {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.purchase-action-edit {
-  border-color: rgba(167, 139, 250, 0.4);
-  background: rgba(167, 139, 250, 0.06);
-  color: #ddd6fe;
+.purchase-badge-unlinked {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.purchase-action-budget {
-  border-color: rgba(96, 165, 250, 0.42);
-  background: rgba(96, 165, 250, 0.07);
+.purchase-badge-status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  text-transform: uppercase;
+}
+
+.purchase-badge-status-bought {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  text-transform: uppercase;
+}
+
+.purchase-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.purchase-status-dot.pending {
+  background-color: #fbbf24;
+  box-shadow: 0 0 6px #fbbf24;
+}
+
+.purchase-status-dot.bought {
+  background-color: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+/* Metadados: Quantidade, Link e Orçamentos */
+.purchase-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+}
+
+.purchase-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.purchase-qty-tag {
+  padding: 0.22rem 0.65rem;
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  border-radius: 6px;
   color: #bfdbfe;
 }
 
-.purchase-action-complete {
-  border-color: rgba(16, 185, 129, 0.42);
-  background: rgba(16, 185, 129, 0.07);
+.purchase-qty-tag strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.purchase-link-group {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.purchase-link-group:hover {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.purchase-store-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  color: #93c5fd;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.purchase-store-link:hover {
+  color: #bfdbfe;
+  text-decoration: underline;
+}
+
+.purchase-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.purchase-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.purchase-copy-btn.is-copied {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.purchase-quotes-tag {
+  padding: 0.22rem 0.6rem;
+  background: rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  border-radius: 6px;
+  color: #ddd6fe;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.purchase-quotes-tag:hover {
+  background: rgba(167, 139, 250, 0.18);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* Painel de Ações */
+.purchase-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+.purchase-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.purchase-btn-budget {
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.35);
+  color: #d8b4fe;
+}
+
+.purchase-btn-budget:hover {
+  background: rgba(147, 51, 234, 0.22);
+  border-color: #c084fc;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.purchase-action-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.4);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.purchase-btn-status-buy {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.38);
+  color: #93c5fa;
+}
+
+.purchase-btn-status-buy:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: #60a5fa;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.purchase-btn-status-receive {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   color: #6ee7b7;
 }
 
-.purchase-action-delete {
-  border-color: rgba(239, 68, 68, 0.38);
-  background: rgba(239, 68, 68, 0.04);
-  color: #fca5a5;
+.purchase-btn-status-receive:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.26);
+  border-color: #34d399;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
-.purchase-action-budget:hover,
-.purchase-action-edit:hover,
-.purchase-action-complete:hover,
-.purchase-action-delete:hover {
-  filter: brightness(1.15);
+.purchase-actions-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.purchase-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-muted);
+}
+
+.purchase-icon-btn-edit:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #ddd6fe;
+  transform: translateY(-1px);
+}
+
+.purchase-icon-btn-delete:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  transform: translateY(-1px);
+}
+
+.purchase-icon-btn:disabled,
+.purchase-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Estado vazio */
+.purchase-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.purchase-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.purchase-empty-state h3 {
+  font-size: 1.15rem;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
+}
+
+.purchase-empty-state p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  max-width: 400px;
 }
 
 .purchase-edit-modal {
@@ -1947,21 +2221,24 @@ main.container {
     justify-content: flex-start;
   }
 
-  .purchase-item-row {
-    display: flex;
+  .purchase-card {
     flex-direction: column;
     align-items: stretch;
+    gap: 1.1rem;
+    padding: 1.15rem;
   }
 
-  .purchase-item-actions {
-    display: flex;
-    flex-wrap: wrap;
+  .purchase-card-actions {
+    justify-content: space-between;
     width: 100%;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-wrap: wrap;
   }
 
-  .purchase-item-action {
+  .purchase-action-btn {
     flex: 1 1 auto;
-    width: auto;
+    min-height: 40px;
   }
 
   .critical-product {
@@ -2443,41 +2720,32 @@ main.container {
 
 /* Compact cards remain side by side on phones without compressing detailed records. */
 @media (max-width: 600px) {
-  .purchase-item-row {
+  .purchase-card {
     gap: 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(255, 255, 255, 0.035);
+    padding: 1rem;
   }
 
-  .purchase-item-info {
-    width: 100%;
-  }
-
-  .purchase-item-heading {
-    align-items: flex-start;
-    gap: 0.65rem;
-  }
-
-  .purchase-item-heading h4 {
-    font-size: 1rem;
-  }
-
-  .purchase-auto-badge {
-    padding: 0.3rem 0.55rem;
-    font-size: 0.66rem;
-  }
-
-  .purchase-item-actions {
-    display: flex;
-    flex-wrap: wrap;
+  .purchase-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
 
-  .purchase-item-action {
-    min-height: 44px;
-    padding: 0.55rem 0.4rem;
-    font-size: 0.72rem;
-    line-height: 1.2;
+  .purchase-action-btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .purchase-actions-secondary {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .purchase-icon-btn {
+    width: 100%;
+    min-height: 38px;
   }
 
   .purchase-edit-actions {
