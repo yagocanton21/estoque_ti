@@ -19,37 +19,50 @@ export function CardProduto({ item, onAbrirFicha, onAbrirEdicao, onExcluir }: Ca
   const temFotoValida = Boolean(urlFoto) && failedUrl !== urlFoto;
 
   return (
-    <article className={`card product-card ${isCritico ? 'product-card-critical' : ''}`}>
-      {/* Vitrine da foto com badge e atalho para ficha */}
-      <div
-        className="product-card-cover"
-        onClick={() => onAbrirFicha(item)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onAbrirFicha(item)}
-        title="Clique para ver ficha completa e histórico"
-      >
-        {temFotoValida ? (
-          <img
-            src={urlFoto}
-            alt={item.nome}
-            className="product-cover-img"
-            onError={() => setFailedUrl(urlFoto)}
-            loading="lazy"
-          />
-        ) : (
-          <div className="product-cover-placeholder">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <span>Sem foto</span>
-          </div>
-        )}
+    <article className={`product-card ${isCritico ? 'product-card-critical' : ''}`}>
+      {/* Foto do produto como estava antes */}
+      {temFotoValida ? (
+        <img
+          src={urlFoto}
+          alt={item.nome}
+          style={{
+            width: '100%',
+            height: '160px',
+            objectFit: 'contain',
+            borderRadius: '8px',
+            backgroundColor: '#f5f5f5',
+            marginBottom: '12px',
+            padding: '8px',
+            cursor: 'pointer',
+          }}
+          onClick={() => onAbrirFicha(item)}
+          onError={() => setFailedUrl(urlFoto)}
+        />
+      ) : (
+        <div
+          style={{
+            width: '100%',
+            height: '160px',
+            backgroundColor: '#f5f5f5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#999',
+            borderRadius: '8px',
+            marginBottom: '12px',
+            cursor: 'pointer',
+          }}
+          onClick={() => onAbrirFicha(item)}
+        >
+          Sem foto
+        </div>
+      )}
 
+      {/* Cabecalho com ID e Badge exatamente como era antes */}
+      <div className="product-card-header" style={{ borderRadius: 0 }}>
+        <span className="product-id">#{item.id}</span>
         <span
-          className={`badge product-badge-overlay ${
+          className={`badge ${
             isCritico
               ? 'badge-danger'
               : isLimite
@@ -58,33 +71,28 @@ export function CardProduto({ item, onAbrirFicha, onAbrirEdicao, onExcluir }: Ca
           }`}
         >
           {isCritico
-            ? 'Abaixo do mínimo'
+            ? 'Estoque baixo'
             : isLimite
             ? 'No limite mínimo'
             : 'Estoque normal'}
         </span>
       </div>
 
-      {/* Dados do produto */}
       <div className="product-card-body" onClick={() => onAbrirFicha(item)} style={{ cursor: 'pointer' }}>
-        <div className="product-card-meta">
-          <span className="product-id">#{item.id}</span>
-          <span className="product-specs-summary">
-            {[item.marca, item.modelo].filter(Boolean).join(' • ') || 'Sem especificações'}
-          </span>
+        <h2>{item.nome}</h2>
+        <p className="product-description">
+          {[item.marca, item.modelo].filter(Boolean).join(' • ') || 'Marca e modelo não informados'}
+        </p>
+      </div>
+
+      <div className="product-stock">
+        <div>
+          <strong>{item.quantidade}</strong>
+          <span>em estoque</span>
         </div>
-
-        <h2 title={item.nome}>{item.nome}</h2>
-
-        <div className="product-stock">
-          <div>
-            <span>Quantidade</span>
-            <strong>{item.quantidade} un.</strong>
-          </div>
-          <div>
-            <span>Estoque mínimo</span>
-            <strong>{minimo} un.</strong>
-          </div>
+        <div>
+          <strong>{minimo}</strong>
+          <span>estoque mínimo</span>
         </div>
       </div>
 
