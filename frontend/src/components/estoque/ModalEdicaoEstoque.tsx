@@ -1,4 +1,5 @@
 import type { EdicaoItem } from './types';
+import { formatarUrlFoto } from './utils';
 
 interface ModalEdicaoEstoqueProps {
   edicao: EdicaoItem;
@@ -103,7 +104,20 @@ export function ModalEdicaoEstoque({
             </label>
 
             <label className="form-field form-field-wide" htmlFor="editar-foto">
-              <span>Atualizar foto do produto</span>
+              <span>Foto do produto</span>
+              {edicao.foto_url && !edicao.foto_arquivo && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.6rem' }}>
+                  <img
+                    src={formatarUrlFoto(edicao.foto_url)}
+                    alt="Foto atual"
+                    style={{ width: '60px', height: '60px', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', padding: '4px' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    Foto atual cadastrada. Selecione um novo arquivo abaixo apenas se desejar substituí-la.
+                  </small>
+                </div>
+              )}
               <input
                 id="editar-foto"
                 type="file"

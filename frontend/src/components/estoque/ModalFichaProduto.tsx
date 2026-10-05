@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { Item, ItemHistoricoDados } from './types';
+import { formatarUrlFoto } from './utils';
 
 interface ModalFichaProdutoProps {
   itemId: number;
@@ -29,6 +30,7 @@ export function ModalFichaProduto({ itemId, onClose, onEditar, onExcluir }: Moda
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'entrada' | 'saida' | 'ajuste'>('todos');
   const [erro, setErro] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -86,8 +88,13 @@ export function ModalFichaProduto({ itemId, onClose, onEditar, onExcluir }: Moda
             {/* Topo do Produto com Foto e Métricas */}
             <div className="product-sheet-top">
               <div className="product-sheet-media">
-                {item.foto_url ? (
-                  <img src={item.foto_url} alt={item.nome} className="product-sheet-photo" />
+                {formatarUrlFoto(item.foto_url) && !imgError ? (
+                  <img
+                    src={formatarUrlFoto(item.foto_url)}
+                    alt={item.nome}
+                    className="product-sheet-photo"
+                    onError={() => setImgError(true)}
+                  />
                 ) : (
                   <div className="product-sheet-photo-placeholder">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
