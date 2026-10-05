@@ -307,3 +307,37 @@ def test_pdf_do_orcamento_fica_disponivel_no_historico(client):
     assert visualizacao.status_code == 200
     assert visualizacao.headers["content-type"] == "application/pdf"
     assert visualizacao.content == pdf
+
+
+def test_historico_individual_e_exclusao_de_item(client):
+    # 1. Cadastra item
+    resp = client.post("/itens/", json={"nome": "Switch 8 Portas", "quantidade": 10, "quantidade_minima": 2})
+    assert resp.status_code == 201
+    item_id = resp.json()["id"]
+
+    # 2. Histórico inicial vazio
+    hist = client.get(f"/itens/{item_id}/historico")
+    assert hist.status_code == 200
+    assert hist.json()["total_entradas"] == 0
+    assert hist.json()["total_saidas"] == 0
+    assert len(hist.json()["movimentacoes"]) == 0
+
+    # 3. Registra movimentações
+    client.post("/movimentacoes/", json={"item_id": item_id, "tipo": "saida", "quantidade": 3, "entregue_para": "Carlos", "observacao": "Instalação Sala 3"})
+    client.post("/movimentacoes/", json={"item_id": item_id, "tipo": "entrada", "quantidade": 5, "observacao": "Compra extra"})
+
+    hist2 = client.get(f"/itens/{item_id}/historico")
+    assert hist2.status_code == 200
+    assert hist2.json()["total_entradas"] == 5
+    assert hist2.json()["total_saidas"] == 3
+    assert len(hist2.json()["movimentacoes"]) == 2
+
+    # 4. Tenta deletar item com movimentações (deve barrar com 409)
+    del_resp = client.delete(f"/itens/{item_id}")
+    assert del_resp.status_code == 409
+
+    # 5. Item sem movimentações pode ser deletado normalmente
+    item_vazio = client.post("/itens/", json={"nome": "Item Temporario", "quantidade": 0}).json()
+    assert client.delete(f"/itens/{item_vazio['id']}").status_code == 204
+    assert client.get(f"/itens/{item_vazio['id']}").status_code == 404
+

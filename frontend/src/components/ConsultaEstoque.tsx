@@ -1,30 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
-
-interface Item {
-  id: number;
-  nome: string;
-  marca: string | null;
-  modelo: string | null;
-  quantidade: number;
-  quantidade_minima: number | null;
-  foto_url?: string;
-}
-
-interface EdicaoItem {
-  id: number;
-  nome: string;
-  marca: string;
-  modelo: string;
-  quantidade: number;
-  quantidade_minima: number;
-  foto_url?: string;
-  foto_arquivo?: File;
-}
-
-type FiltroEstoque = 'todos' | 'normal' | 'limite' | 'abaixo';
-
+import type { Item, EdicaoItem, FiltroEstoque } from './estoque/types';
+import { CardProduto } from './estoque/CardProduto';
+import { ModalEdicaoEstoque } from './estoque/ModalEdicaoEstoque';
+import { ModalFichaProduto } from './estoque/ModalFichaProduto';
 const filtros: { valor: FiltroEstoque; rotulo: string; descricao: string }[] = [
   { valor: 'todos', rotulo: 'Todos os produtos', descricao: 'Sem filtro de quantidade' },
   { valor: 'normal', rotulo: 'Estoque normal', descricao: 'Acima do mínimo configurado' },
@@ -40,12 +20,13 @@ export function ConsultaEstoque() {
   const [filtro, setFiltro] = useState<FiltroEstoque>('todos');
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [edicao, setEdicao] = useState<EdicaoItem | null>(null);
+  const [itemParaFicha, setItemParaFicha] = useState<Item | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const itemsPerPage = 6;
 
-  const carregarPagina = async (pagina: number, termoBusca = busca) => {
+  const carregarPagina = useCallback(async (pagina: number = page, termoBusca = busca, filtroStatus = filtro) => {
     setCarregando(true);
     try {
       const skip = (pagina - 1) * itemsPerPage;
@@ -54,7 +35,7 @@ export function ConsultaEstoque() {
         limit: String(itemsPerPage),
       });
       if (termoBusca.trim()) parametros.set('q', termoBusca.trim());
-      if (filtro !== 'todos') parametros.set('status', filtro);
+      if (filtroStatus !== 'todos') parametros.set('status', filtroStatus);
 
       const resposta = await axios.get(`/api/itens/paginado?${parametros}`);
       setItens(resposta.data.items);
@@ -65,31 +46,15 @@ export function ConsultaEstoque() {
     } finally {
       setCarregando(false);
     }
-  };
+  }, [page, busca, filtro, itemsPerPage]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      const parametros = new URLSearchParams({
-        skip: String((page - 1) * itemsPerPage),
-        limit: String(itemsPerPage),
-      });
-      if (busca.trim()) parametros.set('q', busca.trim());
-      if (filtro !== 'todos') parametros.set('status', filtro);
-
-      axios.get(`/api/itens/paginado?${parametros}`)
-        .then((resposta) => {
-          setItens(resposta.data.items);
-          setTotal(resposta.data.total);
-        })
-        .catch((error) => {
-          console.error('Erro ao buscar itens paginados:', error);
-          setFeedback({ type: 'error', text: 'Não foi possível carregar os produtos. Tente novamente.' });
-        })
-        .finally(() => setCarregando(false));
+      carregarPagina(page, busca, filtro);
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [page, busca, filtro]);
+  }, [page, busca, filtro, carregarPagina]);
 
   const abrirEdicao = (item: Item) => {
     setEdicao({
@@ -100,12 +65,11 @@ export function ConsultaEstoque() {
       quantidade: item.quantidade,
       quantidade_minima: item.quantidade_minima ?? 0,
       foto_url: item.foto_url,
-      foto_arquivo: undefined,
     });
   };
 
-  const salvarEdicao = async (evento: React.FormEvent) => {
-    evento.preventDefault();
+  const salvarEdicao = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!edicao) return;
 
     setSalvando(true);
@@ -118,15 +82,15 @@ export function ConsultaEstoque() {
         quantidade_minima: edicao.quantidade_minima,
         foto_url: edicao.foto_url,
       });
-      
+
       if (edicao.foto_arquivo) {
         const formData = new FormData();
         formData.append('file', edicao.foto_arquivo);
         await axios.post(`/api/itens/${edicao.id}/foto`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      
+
       setEdicao(null);
       await carregarPagina(page);
       setFeedback({ type: 'success', text: `Produto “${edicao.nome}” atualizado com sucesso.` });
@@ -138,21 +102,25 @@ export function ConsultaEstoque() {
     }
   };
 
-  const deletarItem = async () => {
-    if (!edicao) return;
-    if (!window.confirm(`Tem certeza que deseja EXCLUIR o produto "${edicao.nome}"? Esta ação não pode ser desfeita.`)) {
+  const deletarItem = async (id: number, nome: string) => {
+    if (!window.confirm(`Tem certeza que deseja EXCLUIR o produto "${nome}"? Esta ação não pode ser desfeita.`)) {
       return;
     }
 
     setSalvando(true);
+    setFeedback({ type: 'loading', text: `Excluindo “${nome}”...` });
     try {
-      await axios.delete(`/api/itens/${edicao.id}`);
-      setFeedback({ type: 'success', text: `Produto “${edicao.nome}” excluído com sucesso.` });
+      await axios.delete(`/api/itens/${id}`);
+      setFeedback({ type: 'success', text: `Produto “${nome}” excluído com sucesso.` });
       setEdicao(null);
+      setItemParaFicha(null);
       await carregarPagina(page);
     } catch (error: any) {
       console.error('Erro ao deletar item:', error);
-      setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível excluir o produto.' });
+      setFeedback({
+        type: 'error',
+        text: error.response?.data?.detail || 'Não foi possível excluir o produto.',
+      });
     } finally {
       setSalvando(false);
     }
@@ -185,17 +153,17 @@ export function ConsultaEstoque() {
             onChange={(evento) => {
               setBusca(evento.target.value);
               setPage(1);
-              setCarregando(true);
             }}
             placeholder="Pesquisar por nome, marca ou modelo..."
             aria-label="Pesquisar produtos no estoque"
           />
           {busca && (
-            <button type="button" onClick={() => { setBusca(''); setPage(1); setCarregando(true); }}>
+            <button type="button" onClick={() => { setBusca(''); setPage(1); }}>
               Limpar
             </button>
           )}
         </div>
+
         <div className="inventory-filter">
           <button
             type="button"
@@ -226,7 +194,6 @@ export function ConsultaEstoque() {
                   onClick={() => {
                     setFiltro(opcao.valor);
                     setPage(1);
-                    setCarregando(true);
                     setFiltrosAbertos(false);
                   }}
                 >
@@ -252,56 +219,15 @@ export function ConsultaEstoque() {
         </div>
       ) : (
         <div className="product-grid">
-          {itens.map((item) => {
-            const minimo = item.quantidade_minima ?? 0;
-            const critico = item.quantidade <= minimo;
-
-            return (
-              <article key={item.id} className={`product-card ${critico ? 'product-card-critical' : ''}`}>
-                
-                {item.foto_url ? (
-                  <img 
-                    src={`/api${item.foto_url}`} 
-                    alt={item.nome} 
-                    style={{ width: '100%', height: '160px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f5f5f5', marginBottom: '12px', padding: '8px' }} 
-                  />
-                ) : (
-                  <div style={{ width: '100%', height: '160px', backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', borderRadius: '8px', marginBottom: '12px' }}>
-                    Sem foto
-                  </div>
-                )}
-                
-                <div className="product-card-header" style={{ borderRadius: 0 }}>
-                  <span className="product-id">#{item.id}</span>
-                  <span className={critico ? 'badge badge-danger' : 'badge badge-success'}>
-                    {critico ? 'Estoque baixo' : 'Estoque normal'}
-                  </span>
-                </div>
-
-                <div className="product-card-body">
-                  <h2>{item.nome}</h2>
-                  <p className="product-description">
-                    {[item.marca, item.modelo].filter(Boolean).join(' • ') || 'Marca e modelo não informados'}
-                  </p>
-                </div>
-
-                <div className="product-stock">
-                  <div>
-                    <strong>{item.quantidade}</strong>
-                    <span>em estoque</span>
-                  </div>
-                  <div>
-                    <strong>{minimo}</strong>
-                    <span>estoque mínimo</span>
-                  </div>
-                </div>
-
-                <button className="btn btn-outline product-edit-button" onClick={() => abrirEdicao(item)}>
-                  Editar produto
-                </button>
-              </article>
-            );
-          })}
+          {itens.map((item) => (
+            <CardProduto
+              key={item.id}
+              item={item}
+              onAbrirFicha={setItemParaFicha}
+              onAbrirEdicao={abrirEdicao}
+              onExcluir={deletarItem}
+            />
+          ))}
         </div>
       )}
 
@@ -310,7 +236,7 @@ export function ConsultaEstoque() {
           <button
             className="btn btn-outline"
             disabled={page === 1}
-            onClick={() => { setCarregando(true); setPage((pagina) => pagina - 1); }}
+            onClick={() => setPage((paginaAtual) => Math.max(1, paginaAtual - 1))}
           >
             Anterior
           </button>
@@ -318,7 +244,7 @@ export function ConsultaEstoque() {
           <button
             className="btn btn-outline"
             disabled={page === totalPages}
-            onClick={() => { setCarregando(true); setPage((pagina) => pagina + 1); }}
+            onClick={() => setPage((paginaAtual) => Math.min(totalPages, paginaAtual + 1))}
           >
             Próxima
           </button>
@@ -326,98 +252,23 @@ export function ConsultaEstoque() {
       )}
 
       {edicao && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setEdicao(null)}>
-          <section className="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-product-title" onMouseDown={(evento) => evento.stopPropagation()}>
-            <div className="edit-modal-header">
-              <div>
-                <span>Editando produto #{edicao.id}</span>
-                <h2 id="edit-product-title">Atualizar produto</h2>
-              </div>
-              <button className="modal-close" type="button" onClick={() => setEdicao(null)} aria-label="Fechar edição">×</button>
-            </div>
+        <ModalEdicaoEstoque
+          edicao={edicao}
+          salvando={salvando}
+          onClose={() => setEdicao(null)}
+          onChange={setEdicao}
+          onSalvar={salvarEdicao}
+          onExcluir={deletarItem}
+        />
+      )}
 
-            <form onSubmit={salvarEdicao}>
-              <div className="edit-form-grid">
-                <label className="form-field form-field-wide">
-                  <span>Nome do produto</span>
-                  <input
-                    value={edicao.nome}
-                    onChange={(evento) => setEdicao({ ...edicao, nome: evento.target.value })}
-                    required
-                  />
-                </label>
-                <label className="form-field">
-                  <span>Marca</span>
-                  <input
-                    value={edicao.marca}
-                    onChange={(evento) => setEdicao({ ...edicao, marca: evento.target.value })}
-                    placeholder="Opcional"
-                  />
-                </label>
-                <label className="form-field">
-                  <span>Modelo</span>
-                  <input
-                    value={edicao.modelo}
-                    onChange={(evento) => setEdicao({ ...edicao, modelo: evento.target.value })}
-                    placeholder="Opcional"
-                  />
-                </label>
-                <label className="form-field">
-                  <span>Quantidade atual</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={edicao.quantidade}
-                    disabled
-                  />
-                  <small>Para mudar o saldo, use Entrada / Saída e escolha Ajuste.</small>
-                </label>
-                <label className="form-field">
-                  <span>Estoque mínimo</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={edicao.quantidade_minima}
-                    onChange={(evento) => setEdicao({ ...edicao, quantidade_minima: Number(evento.target.value) })}
-                    required
-                  />
-                </label>
-                <label className="form-field form-field-wide">
-                  <span>Foto do produto</span>
-                  
-                  {edicao.foto_url && !edicao.foto_arquivo && (
-                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <img src={`/api${edicao.foto_url}`} alt="Atual" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }} />
-                      <small>O produto já possui uma foto. Selecione um novo arquivo apenas se quiser substituí-la.</small>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(evento) => {
-                      if (evento.target.files && evento.target.files.length > 0) {
-                        setEdicao({ ...edicao, foto_arquivo: evento.target.files[0] });
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-
-              <div className="edit-modal-actions edit-modal-actions-split">
-                <button type="button" className="btn btn-outline danger-outline-button" onClick={deletarItem} disabled={salvando}>
-                  Excluir Produto
-                </button>
-                <div className="edit-modal-primary-actions">
-                  <button type="button" className="btn btn-outline" onClick={() => setEdicao(null)}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary" disabled={salvando}>
-                    {salvando ? 'Salvando...' : 'Salvar alterações'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </section>
-        </div>
+      {itemParaFicha && (
+        <ModalFichaProduto
+          itemId={itemParaFicha.id}
+          onClose={() => setItemParaFicha(null)}
+          onEditar={(item) => abrirEdicao(item)}
+          onExcluir={(item) => deletarItem(item.id, item.nome)}
+        />
       )}
     </>
   );

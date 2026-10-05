@@ -102,15 +102,59 @@ def atualizar_item(id: int, item: ItemCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
+from schemas.item import ItemCreate, ItemResponse, ItemHistoricoResponse
+
+@router.get("/{id}/historico", response_model=ItemHistoricoResponse)
+def obter_historico_item(id: int, db: Session = Depends(get_db)):
+    from models.movimentacao import Movimentacao
+    db_item = db.query(Item).filter(Item.id == id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+
+    movimentacoes = (
+        db.query(Movimentacao)
+        .filter(Movimentacao.item_id == id)
+        .order_by(Movimentacao.data.desc())
+        .all()
+    )
+
+    total_entradas = sum(m.quantidade for m in movimentacoes if m.tipo == "entrada")
+    total_saidas = sum(m.quantidade for m in movimentacoes if m.tipo == "saida")
+    total_ajustes = sum(1 for m in movimentacoes if m.tipo == "ajuste")
+
+    return {
+        "item": db_item,
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
+        "total_ajustes": total_ajustes,
+        "movimentacoes": movimentacoes,
+    }
+
 @router.delete("/{id}", status_code=204)
 def deletar_item(id: int, db: Session = Depends(get_db)):
     from models.movimentacao import Movimentacao
+    from models.lista_compras import ListaCompras
     db_item = db.query(Item).filter(Item.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
     tem_movimentacoes = db.query(Movimentacao).filter(Movimentacao.item_id == id).first()
     if tem_movimentacoes:
-        raise HTTPException(status_code=409, detail="Item possui movimentações registradas e não pode ser deletado")
+        raise HTTPException(
+            status_code=409,
+            detail="Este item possui movimentações registradas no histórico e não pode ser excluído para manter a auditoria.",
+        )
+    # Se houver itens na lista de compras vinculados, desvincula
+    db.query(ListaCompras).filter(ListaCompras.item_id == id).update({"item_id": None})
+
+    # Remove foto se existir
+    if db_item.foto_url:
+        foto_path = os.path.join("/data", db_item.foto_url.lstrip("/"))
+        if os.path.exists(foto_path):
+            try:
+                os.remove(foto_path)
+            except Exception:
+                pass
+
     db.delete(db_item)
     db.commit()
 
