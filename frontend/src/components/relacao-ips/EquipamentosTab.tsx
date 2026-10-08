@@ -15,6 +15,10 @@ export function EquipamentosTab({ tipo, onAlterado }: EquipamentosTabProps) {
   const [itens, setItens] = useState<Equipamento[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 25;
 

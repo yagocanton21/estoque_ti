@@ -18,6 +18,10 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [lista, setLista] = useState<ListaComprasItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
   const itemsPerPage = 10;
 
   const [processandoId, setProcessandoId] = useState<number | null>(null);

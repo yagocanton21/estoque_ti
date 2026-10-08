@@ -15,6 +15,10 @@ export function MaquinasTab() {
   const [maquinas, setMaquinas] = useState<Maquina[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(25);
 

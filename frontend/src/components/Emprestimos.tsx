@@ -23,6 +23,10 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
   const [quantidade, setQuantidade] = useState(1);
   const [busca, setBusca] = useState('');
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
   const [total, setTotal] = useState(0);
   const [salvando, setSalvando] = useState(false);
   const [devolvendoId, setDevolvendoId] = useState<number | null>(null);

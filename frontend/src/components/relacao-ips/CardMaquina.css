@@ -105,20 +105,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--accent-success);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 6px;
-  padding: 0.3rem 0.55rem;
-  font-size: 0.8rem;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  padding: 0;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .ip-badge-button:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: var(--accent-success);
+  opacity: 0.8;
 }
 
 .ip-badge-button code {

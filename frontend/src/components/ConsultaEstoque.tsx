@@ -18,6 +18,10 @@ export function ConsultaEstoque() {
   const [itens, setItens] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<FiltroEstoque>('todos');
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
