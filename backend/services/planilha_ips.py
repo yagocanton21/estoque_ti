@@ -28,28 +28,36 @@ def normalizar_coluna(nome: str) -> str:
     )
     texto = re.sub(r"[^a-z0-9]", "", texto)
 
+    if any(k in texto for k in ["datacoleta", "datadecoleta", "datacoletada", "datada", "data"]):
+        return "data_coleta"
     if any(k in texto for k in ["nomedamaquina", "hostname", "maquina", "computador", "host", "equipamento"]):
         return "nome_maquina"
-    if any(k in texto for k in ["usuarioad", "userad", "loginad", "aduser", "ad"]):
+    if any(k in texto for k in ["usuarioad", "userad", "loginad", "aduser", "contaad"]) or texto == "ad":
         return "usuario_ad"
     if any(k in texto for k in ["usuario", "colaborador", "funcionario", "responsavel", "nome"]):
         return "usuario"
-    if any(k in texto for k in ["enderecoip", "ipmaquina", "ip"]):
+    if any(k in texto for k in ["outrosips", "outroip", "ipexterno", "ipsecundario", "outros"]):
+        return "outros_ips"
+    if any(k in texto for k in ["ipinterno", "enderecoip", "ipmaquina", "ip"]):
         return "ip"
+    if any(k in texto for k in ["versaobuild", "buildoffice", "versaodooffice", "versao"]):
+        return "office_versao"
+    if any(k in texto for k in ["arquitetura", "arch"]):
+        return "office_arquitetura"
+    if any(k in texto for k in ["situacaooffice", "situacao"]):
+        return "office_situacao"
+    if any(k in texto for k in ["pacoteoffice", "office", "msoffice"]):
+        return "office"
     if any(k in texto for k in ["sistemaoperacional", "sistema", "so", "windows", "os"]):
         return "sistema_operacional"
-    if any(k in texto for k in ["pacoteoffice", "office", "msoffice", "versaooffice"]):
-        return "office"
     if any(k in texto for k in ["departamento", "setor", "depto", "area"]):
         return "setor"
     if any(k in texto for k in ["antivirus", "anti-virus", "av", "edr"]):
         return "antivirus"
     if any(k in texto for k in ["observacoes", "observacao", "obs", "anotacoes", "nota"]):
         return "observacoes"
-    if any(k in texto for k in ["status", "situacao"]):
+    if any(k in texto for k in ["statuscoleta", "statusdacoleta", "status"]):
         return "status"
-    if any(k in texto for k in ["datacoleta", "data_coleta"]):
-        return "data_coleta"
 
     return texto
 
@@ -168,12 +176,32 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
 
         status_info = (linha.get("status") or "").strip()
         data_coleta = (linha.get("data_coleta") or "").strip()
-        if not obs and (status_info or data_coleta):
+        outros_ips = (linha.get("outros_ips") or "").strip()
+        office_versao = (linha.get("office_versao") or "").strip()
+        office_arquitetura = (linha.get("office_arquitetura") or "").strip()
+
+        if not obs and (status_info or data_coleta or outros_ips or office_versao):
             detalhes = []
-            if status_info:
-                detalhes.append(f"Status: {status_info}")
+            if outros_ips:
+                detalhes.append(f"Outro IP: {outros_ips}")
+            if office_versao:
+                arch_str = f" ({office_arquitetura})" if office_arquitetura and office_arquitetura != "Nao identificada" else ""
+                detalhes.append(f"Build Office: {office_versao}{arch_str}")
+            if status_info and status_info != "OK":
+                detalhes.append(f"Status Coleta: {status_info}")
             if data_coleta:
-                detalhes.append(f"Coletado em: {data_coleta}")
+                detalhes.append(f"Coletado via rede em: {data_coleta}")
+            obs = " · ".join(detalhes)
+        elif data_coleta and (not obs or "Coletado" in obs or "Status:" in obs):
+            detalhes = []
+            if outros_ips:
+                detalhes.append(f"Outro IP: {outros_ips}")
+            if office_versao:
+                arch_str = f" ({office_arquitetura})" if office_arquitetura and office_arquitetura != "Nao identificada" else ""
+                detalhes.append(f"Build Office: {office_versao}{arch_str}")
+            if status_info and status_info != "OK":
+                detalhes.append(f"Status Coleta: {status_info}")
+            detalhes.append(f"Coletado via rede em: {data_coleta}")
             obs = " · ".join(detalhes)
 
         existente = (
