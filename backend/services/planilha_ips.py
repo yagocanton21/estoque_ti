@@ -312,7 +312,6 @@ def gerar_planilha_exportacao(db: Session) -> io.BytesIO:
         "Sistema Operacional",
         "Office",
         "Antivírus",
-        "Observações",
         "Status",
     ]
     ws.append(headers)
@@ -343,7 +342,6 @@ def gerar_planilha_exportacao(db: Session) -> io.BytesIO:
                 m.sistema_operacional or "",
                 m.office or "",
                 m.antivirus or "",
-                m.observacoes or "",
                 "Ativo" if m.ativo else "Inativo",
             ]
         )
