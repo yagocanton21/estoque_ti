@@ -6,6 +6,7 @@ import type { ListaComprasItem } from './lista-compras/types';
 import { CardItemCompra } from './lista-compras/CardItemCompra';
 import { FormAdicionarCompra } from './lista-compras/FormAdicionarCompra';
 import { ModalEdicaoCompra } from './lista-compras/ModalEdicaoCompra';
+import './lista-compras/ListaCompras.css';
 
 export type { ListaComprasItem };
 

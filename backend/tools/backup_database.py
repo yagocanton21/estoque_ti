@@ -34,8 +34,11 @@ def main() -> None:
                 raise RuntimeError(f"Falha na verificação de integridade: {integrity}")
 
             counts = {}
-            for table in ("itens", "movimentacoes", "lista_compras", "emprestimos"):
-                counts[table] = destination.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+            for table in ("itens", "movimentacoes", "lista_compras", "emprestimos", "maquinas", "equipamentos_rede"):
+                try:
+                    counts[table] = destination.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+                except Exception:
+                    pass
 
     print(f"Backup criado: {output_path}")
     print(f"Integridade: {integrity}")

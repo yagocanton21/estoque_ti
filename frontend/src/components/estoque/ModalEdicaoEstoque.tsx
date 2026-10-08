@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import type { EdicaoItem } from './types';
 import { formatarUrlFoto } from './utils';
+import './ModalEdicaoEstoque.css';
 
 interface ModalEdicaoEstoqueProps {
   edicao: EdicaoItem;
@@ -18,6 +20,63 @@ export function ModalEdicaoEstoque({
   onSalvar,
   onExcluir,
 }: ModalEdicaoEstoqueProps) {
+  const isUrlExterna = Boolean(
+    edicao.foto_url &&
+    (edicao.foto_url.startsWith('http://') || edicao.foto_url.startsWith('https://'))
+  );
+
+  const [modoFoto, setModoFoto] = useState<'url' | 'arquivo'>(() => {
+    if (edicao.foto_arquivo) return 'arquivo';
+    if (isUrlExterna) return 'url';
+    if (edicao.foto_url && edicao.foto_url.startsWith('/uploads/')) return 'arquivo';
+    return 'url';
+  });
+
+  const [previewError, setPreviewError] = useState(false);
+  const [arquivoPreviewUrl, setArquivoPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (edicao.foto_arquivo) {
+      const objectUrl = URL.createObjectURL(edicao.foto_arquivo);
+      setArquivoPreviewUrl(objectUrl);
+      setPreviewError(false);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setArquivoPreviewUrl(null);
+    }
+  }, [edicao.foto_arquivo]);
+
+  const urlFotoFormatada = formatarUrlFoto(edicao.foto_url);
+  const imagemPreview = arquivoPreviewUrl || (urlFotoFormatada ? urlFotoFormatada : null);
+
+  const handleRemoverFoto = () => {
+    setPreviewError(false);
+    onChange({
+      ...edicao,
+      foto_url: '',
+      foto_arquivo: undefined,
+    });
+  };
+
+  const handleUrlChange = (novaUrl: string) => {
+    setPreviewError(false);
+    onChange({
+      ...edicao,
+      foto_url: novaUrl,
+      foto_arquivo: undefined,
+    });
+  };
+
+  const handleArquivoChange = (arquivo?: File) => {
+    setPreviewError(false);
+    if (arquivo) {
+      onChange({
+        ...edicao,
+        foto_arquivo: arquivo,
+      });
+    }
+  };
+
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
@@ -56,6 +115,7 @@ export function ModalEdicaoEstoque({
               <input
                 id="editar-marca"
                 type="text"
+                placeholder="Ex: Dell, Logitech, HP"
                 value={edicao.marca}
                 onChange={(evento) => onChange({ ...edicao, marca: evento.target.value })}
               />
@@ -66,6 +126,7 @@ export function ModalEdicaoEstoque({
               <input
                 id="editar-modelo"
                 type="text"
+                placeholder="Ex: MX Master 3, G15"
                 value={edicao.modelo}
                 onChange={(evento) => onChange({ ...edicao, modelo: evento.target.value })}
               />
@@ -103,31 +164,118 @@ export function ModalEdicaoEstoque({
               />
             </label>
 
-            <label className="form-field form-field-wide" htmlFor="editar-foto">
-              <span>Foto do produto</span>
-              {edicao.foto_url && !edicao.foto_arquivo && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.6rem' }}>
-                  <img
-                    src={formatarUrlFoto(edicao.foto_url)}
-                    alt="Foto atual"
-                    style={{ width: '60px', height: '60px', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', padding: '4px' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            <div className="form-field form-field-wide photo-management-field">
+              <div className="photo-field-header">
+                <span>Foto do produto</span>
+                <div className="photo-source-pills">
+                  <button
+                    type="button"
+                    className={`photo-pill ${modoFoto === 'url' ? 'active' : ''}`}
+                    onClick={() => setModoFoto('url')}
+                  >
+                    🌐 Link / URL
+                  </button>
+                  <button
+                    type="button"
+                    className={`photo-pill ${modoFoto === 'arquivo' ? 'active' : ''}`}
+                    onClick={() => setModoFoto('arquivo')}
+                  >
+                    📁 Arquivo local
+                  </button>
+                </div>
+              </div>
+
+              {modoFoto === 'url' ? (
+                <div className="photo-url-control">
+                  <div className="photo-input-action-row">
+                    <input
+                      id="editar-foto-url"
+                      type="url"
+                      placeholder="https://exemplo.com/imagem-do-produto.jpg"
+                      value={edicao.foto_url && !edicao.foto_arquivo ? edicao.foto_url : ''}
+                      onChange={(evento) => handleUrlChange(evento.target.value)}
+                      autoComplete="off"
+                    />
+                    {edicao.foto_url && (
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm photo-clear-btn"
+                        onClick={handleRemoverFoto}
+                        title="Limpar URL e remover foto"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                  <small className="photo-helper-text">
+                    Cole o link direto da imagem na internet (ex: lojas, fabricantes, Imgur, etc.).
+                  </small>
+                </div>
+              ) : (
+                <div className="photo-file-control">
+                  <input
+                    id="editar-foto-arquivo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(evento) => {
+                      const arquivo = evento.target.files?.[0];
+                      handleArquivoChange(arquivo);
+                    }}
                   />
-                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                    Foto atual cadastrada. Selecione um novo arquivo abaixo apenas se desejar substituí-la.
+                  <small className="photo-helper-text">
+                    Selecione uma imagem do computador (JPG, PNG, WebP).
                   </small>
                 </div>
               )}
-              <input
-                id="editar-foto"
-                type="file"
-                accept="image/*"
-                onChange={(evento) => {
-                  const arquivo = evento.target.files?.[0];
-                  if (arquivo) onChange({ ...edicao, foto_arquivo: arquivo });
-                }}
-              />
-            </label>
+
+              {/* Preview da foto */}
+              {imagemPreview && (
+                <div className="photo-preview-container">
+                  <div className="photo-preview-thumb-wrap">
+                    {!previewError ? (
+                      <img
+                        src={imagemPreview}
+                        alt="Preview da foto"
+                        className="photo-preview-thumb"
+                        referrerPolicy="no-referrer"
+                        onError={() => setPreviewError(true)}
+                      />
+                    ) : (
+                      <div className="photo-preview-error-box">
+                        <span>⚠️ Erro na imagem</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="photo-preview-details">
+                    <div className="photo-preview-origin">
+                      {edicao.foto_arquivo ? (
+                        <span>📁 Arquivo local: <strong>{edicao.foto_arquivo.name}</strong></span>
+                      ) : isUrlExterna ? (
+                        <span>🌐 Link da internet</span>
+                      ) : (
+                        <span>💾 Foto cadastrada</span>
+                      )}
+                    </div>
+                    {previewError ? (
+                      <small className="photo-preview-status error">
+                        Não foi possível carregar a imagem deste link. Verifique se o endereço está correto.
+                      </small>
+                    ) : (
+                      <small className="photo-preview-status success">
+                        Imagem carregada e pronta para salvar.
+                      </small>
+                    )}
+                    <button
+                      type="button"
+                      className="photo-remove-btn"
+                      onClick={handleRemoverFoto}
+                    >
+                      Remover esta foto
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="edit-modal-actions edit-modal-actions-split">

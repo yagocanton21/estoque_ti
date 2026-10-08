@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Empréstimos de Equipamentos
+   ========================================================================== */
+.loans-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.loans-section-header h2 {
+  margin-bottom: 0.2rem;
+}
+
+.loans-section-header span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.loans-search {
+  width: min(420px, 100%);
+}
+
+.responsive-inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.responsive-field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.responsive-field-quantity {
+  flex: 0 0 120px;
+}
+
+.responsive-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+}
+
+.responsive-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.responsive-form-submit {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0.75rem 2rem;
+  white-space: nowrap;
+}
+
+.responsive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.compact-list {
+  gap: 0.5rem;
+}
+
+.responsive-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-width: 0;
+  padding: 1.1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.loan-list-row {
+  border-left: 4px solid var(--accent-warning);
+}
+
+.returned-list-row {
+  opacity: 0.8;
+}
+
+.responsive-list-main {
+  min-width: 0;
+}
+
+.responsive-list-main h4 {
+  overflow-wrap: anywhere;
+}
+
+.responsive-list-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin-top: 0.4rem;
+}
+
+.responsive-list-meta p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.responsive-row-action {
+  flex: 0 0 auto;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .loans-section-header,
+  .responsive-list-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .responsive-row-action {
+    width: 100%;
+  }
+
+  .responsive-inline-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .responsive-field,
+  .responsive-field-quantity {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .responsive-form-submit {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 600px) {
+  .responsive-list-row {
+    padding: 1rem;
+  }
+
+  .responsive-list-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}

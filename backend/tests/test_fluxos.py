@@ -341,3 +341,54 @@ def test_historico_individual_e_exclusao_de_item(client):
     assert client.delete(f"/itens/{item_vazio['id']}").status_code == 204
     assert client.get(f"/itens/{item_vazio['id']}").status_code == 404
 
+
+def test_item_com_foto_url(client):
+    # 1. Cria item com foto_url externa
+    resp = client.post(
+        "/itens/",
+        json={
+            "nome": "Mouse Gamer",
+            "marca": "Logitech",
+            "modelo": "G502",
+            "quantidade": 4,
+            "quantidade_minima": 1,
+            "foto_url": "https://example.com/mouse.jpg",
+        },
+    )
+    assert resp.status_code == 201
+    item = resp.json()
+    assert item["foto_url"] == "https://example.com/mouse.jpg"
+    assert item["marca"] == "Logitech"
+    assert item["modelo"] == "G502"
+
+    # 2. Atualiza foto_url
+    item_id = item["id"]
+    put_resp = client.put(
+        f"/itens/{item_id}",
+        json={
+            "nome": "Mouse Gamer Pro",
+            "marca": "Logitech",
+            "modelo": "G502 Hero",
+            "quantidade": 4,
+            "quantidade_minima": 1,
+            "foto_url": "https://example.com/mouse-novo.png",
+        },
+    )
+    assert put_resp.status_code == 200
+    assert put_resp.json()["foto_url"] == "https://example.com/mouse-novo.png"
+
+    # 3. Remove foto_url
+    del_foto_resp = client.put(
+        f"/itens/{item_id}",
+        json={
+            "nome": "Mouse Gamer Pro",
+            "marca": "Logitech",
+            "modelo": "G502 Hero",
+            "quantidade": 4,
+            "quantidade_minima": 1,
+            "foto_url": None,
+        },
+    )
+    assert del_foto_resp.status_code == 200
+    assert del_foto_resp.json()["foto_url"] is None
+

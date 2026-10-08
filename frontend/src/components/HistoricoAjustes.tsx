@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import './HistoricoMovimentacoes.css';
 
 interface Ajuste {
   id: number;

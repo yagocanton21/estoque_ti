@@ -1,0 +1,186 @@
+.relacao-ips-page {
+  width: 100%;
+}
+
+.machine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.machine-list-header,
+.machine-list-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.2fr) minmax(180px, 1.3fr) minmax(110px, 0.8fr) minmax(240px, 1.8fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0 1.1rem;
+}
+
+.machine-list-header {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.ml-actions-head {
+  text-align: right;
+}
+
+.machine-list-row {
+  padding: 0.85rem 1.1rem;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.machine-list-row:hover {
+  border-color: rgba(0, 85, 255, 0.45);
+  background: rgba(0, 85, 255, 0.06);
+}
+
+.ml-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ml-hostname {
+  font-size: 0.98rem;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.ml-user-name {
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.ml-muted {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 400;
+}
+
+.ml-software {
+  gap: 0.25rem;
+  font-size: 0.82rem;
+}
+
+.ml-software > div {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.ml-software em {
+  font-style: normal;
+  flex: 0 0 62px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.ml-software span {
+  color: var(--text-main);
+}
+
+.ml-actions {
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.ip-badge-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent-success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ip-badge-button:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--accent-success);
+}
+
+.ip-badge-button code {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.ad-badge {
+  display: inline-block;
+  background: rgba(0, 85, 255, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(0, 85, 255, 0.25);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.machine-modal {
+  width: min(720px, 100%);
+}
+
+.modal-error-alert {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--accent-danger);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+
+.equip-list .machine-list-header,
+.equip-list .machine-list-row {
+  grid-template-columns: minmax(170px, 1.2fr) minmax(220px, 1.4fr) minmax(120px, 0.8fr) minmax(160px, 1.2fr) auto;
+}
+
+@media (max-width: 1000px) {
+  .machine-list-header,
+  .equip-list .machine-list-header {
+    display: none;
+  }
+
+  .machine-list-row,
+  .equip-list .machine-list-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem 1.2rem;
+  }
+
+  .ml-software {
+    grid-column: 1 / -1;
+  }
+
+  .ml-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .machine-list-row,
+  .equip-list .machine-list-row {
+    grid-template-columns: 1fr;
+  }
+}

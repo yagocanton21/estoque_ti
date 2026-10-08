@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import './HistoricoMovimentacoes.css';
 
 type TipoMovimentacao = 'entrada' | 'saida';
 type FiltroMovimentacao = 'entrada_saida' | TipoMovimentacao;

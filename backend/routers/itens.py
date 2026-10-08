@@ -97,6 +97,14 @@ def atualizar_item(id: int, item: ItemCreate, db: Session = Depends(get_db)):
     for campo, valor in item.model_dump().items():
         if campo == "quantidade":
             continue
+        if campo == "foto_url" and db_item.foto_url and db_item.foto_url.startswith("/uploads/"):
+            if valor != db_item.foto_url:
+                foto_path = os.path.join("/data", db_item.foto_url.lstrip("/"))
+                if os.path.exists(foto_path):
+                    try:
+                        os.remove(foto_path)
+                    except Exception:
+                        pass
         setattr(db_item, campo, valor)
     db.commit()
     db.refresh(db_item)

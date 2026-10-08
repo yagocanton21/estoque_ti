@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { Item, ItemHistoricoDados } from './types';
 import { formatarUrlFoto } from './utils';
+import './ModalFichaProduto.css';
 
 interface ModalFichaProdutoProps {
   itemId: number;
@@ -93,6 +94,7 @@ export function ModalFichaProduto({ itemId, onClose, onEditar, onExcluir }: Moda
                     src={formatarUrlFoto(item.foto_url)}
                     alt={item.nome}
                     className="product-sheet-photo"
+                    referrerPolicy="no-referrer"
                     onError={() => setImgError(true)}
                   />
                 ) : (

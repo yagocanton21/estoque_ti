@@ -1,0 +1,201 @@
+/* ==========================================================================
+   Estoque Crítico - Lista e Alertas
+   ========================================================================== */
+.critical-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.critical-page-header h1 {
+  margin: 0 0 0.35rem;
+}
+
+.critical-page-header p,
+.critical-empty-state p {
+  color: var(--text-muted);
+}
+
+.critical-list-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.critical-empty-state {
+  text-align: center;
+}
+
+.critical-empty-state h2 {
+  margin: 1rem 0 0.5rem;
+}
+
+.critical-list {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+}
+
+.critical-list-header,
+.critical-list-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 130px 110px 140px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.critical-list-header {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.critical-list-row {
+  min-height: 72px;
+  padding: 0.8rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.critical-list-row:last-child {
+  border-bottom: 0;
+}
+
+.critical-list-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.critical-product {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.critical-product > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.critical-product strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.critical-product span:last-child {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.critical-status-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent-danger);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.critical-status-limit {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+}
+
+.critical-list-cell {
+  display: flex;
+  align-items: center;
+}
+
+.critical-list-cell strong {
+  font-size: 1.05rem;
+}
+
+.critical-value-danger {
+  color: #fca5a5;
+}
+
+.critical-value-limit {
+  color: #fbbf24;
+}
+
+.critical-label-danger,
+.critical-label-limit {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.critical-label-danger {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.critical-label-limit {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .critical-page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .critical-list-header {
+    display: none;
+  }
+
+  .critical-list-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .critical-product {
+    grid-column: 1 / -1;
+  }
+
+  .critical-list-cell {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .critical-list-cell::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+  }
+}
+
+@media (max-width: 480px) {
+  .critical-list-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.9rem;
+  }
+
+  .critical-list-cell:last-child {
+    grid-column: 1 / -1;
+  }
+}

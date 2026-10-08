@@ -5,6 +5,8 @@ import type { Item, EdicaoItem, FiltroEstoque } from './estoque/types';
 import { CardProduto } from './estoque/CardProduto';
 import { ModalEdicaoEstoque } from './estoque/ModalEdicaoEstoque';
 import { ModalFichaProduto } from './estoque/ModalFichaProduto';
+import './estoque/ConsultaEstoque.css';
+
 const filtros: { valor: FiltroEstoque; rotulo: string; descricao: string }[] = [
   { valor: 'todos', rotulo: 'Todos os produtos', descricao: 'Sem filtro de quantidade' },
   { valor: 'normal', rotulo: 'Estoque normal', descricao: 'Acima do mínimo configurado' },

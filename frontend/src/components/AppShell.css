@@ -1,0 +1,182 @@
+/* ==========================================================================
+   App Shell Layout (Sidebar, Navigation & Overlays)
+   ========================================================================== */
+#root {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 280px;
+  background: rgba(45, 48, 56, 0.8);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--glass-border);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.sidebar-logo-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  object-fit: contain;
+  background-color: white;
+  padding: 4px;
+}
+
+.sidebar .logo {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+  justify-content: flex-start;
+}
+
+.sidebar .logo span {
+  font-size: 1.2rem;
+}
+
+.sidebar-close,
+.mobile-topbar,
+.navigation-backdrop {
+  display: none;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sidebar .btn {
+  justify-content: flex-start;
+  padding: 0.8rem 1.25rem;
+}
+
+main.container {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2rem 2.5rem;
+}
+
+@media (max-width: 1200px) {
+  main.container {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo span {
+  color: #f8fafc;
+}
+
+/* History Shortcuts Menu */
+.history-shortcuts {
+  position: fixed;
+  top: 1.5rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.history-shortcuts > .btn {
+  width: 44px;
+  height: 44px;
+  padding: 0.6rem;
+  border-radius: 50%;
+  background: var(--bg-card);
+}
+
+.history-shortcuts-menu {
+  position: absolute;
+  top: 3.5rem;
+  right: 0;
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: rgba(45, 48, 56, 0.98);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.history-shortcuts-menu h3 {
+  margin: 0 0 0.25rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.history-shortcuts-menu .btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.65rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+}
+
+/* Page Headers & Shared Containers */
+.page-introduction {
+  margin: 2rem 0 1.5rem;
+}
+
+.page-introduction h1 {
+  margin-bottom: 0.35rem;
+}
+
+.page-introduction p {
+  color: var(--text-muted);
+}
+
+.page-action-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.page-action-header h1 {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.section-card {
+  margin-top: 2rem;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(10, 12, 18, 0.78);
+  backdrop-filter: blur(5px);
+}

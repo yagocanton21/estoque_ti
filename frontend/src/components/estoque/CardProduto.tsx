@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Item } from './types';
 import { formatarUrlFoto } from './utils';
+import './CardProduto.css';
 
 interface CardProdutoProps {
   item: Item;
@@ -25,6 +26,7 @@ export function CardProduto({ item, onAbrirFicha, onAbrirEdicao, onExcluir }: Ca
         <img
           src={urlFoto}
           alt={item.nome}
+          referrerPolicy="no-referrer"
           style={{
             width: '100%',
             height: '160px',

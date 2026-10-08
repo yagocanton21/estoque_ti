@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Registro de Movimentações (Entrada, Saída, Ajuste)
+   ========================================================================== */
+.centered-form-page {
+  width: min(700px, 100%);
+  margin: 0 auto;
+}
+
+.product-picker {
+  position: relative;
+}
+
+.product-picker-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.product-picker-input .btn {
+  flex: 0 0 auto;
+}
+
+.product-suggestions {
+  position: absolute;
+  top: calc(100% - 0.1rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: #252830;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.product-suggestions button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.product-suggestions button:last-child {
+  border-bottom: 0;
+}
+
+.product-suggestions button:hover,
+.product-suggestions button:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.product-suggestions span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.selected-product {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #a7f3d0;
+  font-size: 0.85rem;
+}
+
+.adjustment-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.08);
+  color: #fde68a;
+}
+
+.adjustment-preview strong {
+  font-size: 1.2rem;
+}

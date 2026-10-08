@@ -1,3 +1,5 @@
+import './Historicos.css';
+
 interface HistoricosProps {
   onNavigate: (tab: string) => void;
 }

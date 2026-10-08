@@ -1,0 +1,10 @@
+/* ==========================================================================
+   Modal de Edição - Lista de Compras
+   ========================================================================== */
+.purchase-edit-modal {
+  width: min(520px, 100%);
+}
+
+.purchase-edit-actions {
+  justify-content: flex-end;
+}

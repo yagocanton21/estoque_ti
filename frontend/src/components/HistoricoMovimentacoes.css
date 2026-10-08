@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Histórico de Movimentações (Entradas e Saídas)
+   ========================================================================== */
+.movement-history-page {
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.movement-history-page > .inventory-search {
+  margin-bottom: 1.25rem;
+}
+
+.movement-history-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.movement-history-toolbar .inventory-search {
+  flex: 1;
+  width: auto;
+}
+
+.movement-type-filter {
+  display: flex;
+  flex: 0 0 220px;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.movement-type-filter select {
+  min-width: 0;
+  flex: 1;
+  padding: 0.75rem 1.5rem 0.75rem 0.35rem;
+  border: 0;
+  background-color: transparent;
+  color: var(--text-main);
+  font: inherit;
+}
+
+.movement-value-entry {
+  color: #6ee7b7;
+}
+
+.movement-value-exit {
+  color: #fca5a5;
+}
+
+.movement-history-list {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+}
+
+.movement-history-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 110px auto minmax(220px, 1.4fr);
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.movement-history-row:last-child {
+  border-bottom: 0;
+}
+
+.movement-history-product,
+.movement-history-balance,
+.movement-history-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.movement-history-product span,
+.movement-history-balance span,
+.movement-history-reason > span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.movement-history-reason p {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .movement-history-toolbar {
+    flex-direction: column;
+  }
+
+  .movement-type-filter {
+    flex: 1 1 auto;
+    min-height: 48px;
+    width: 100%;
+  }
+
+  .movement-history-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .movement-history-reason {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .movement-history-row {
+    grid-template-columns: 1fr;
+  }
+
+  .movement-history-reason {
+    grid-column: auto;
+  }
+}

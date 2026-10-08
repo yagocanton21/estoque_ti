@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ListaComprasItem } from './types';
+import './CardItemCompra.css';
 
 interface CardItemCompraProps {
   item: ListaComprasItem;

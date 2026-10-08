@@ -11,8 +11,10 @@ import { EstoqueCritico } from './components/EstoqueCritico';
 import { Historicos } from './components/Historicos';
 import { HistoricoAjustes } from './components/HistoricoAjustes';
 import { HistoricoMovimentacoes } from './components/HistoricoMovimentacoes';
+import { RelacaoIps } from './components/RelacaoIps';
+import './components/AppShell.css';
 
-type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_movimentacoes' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes';
+type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_movimentacoes' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes' | 'relacao_ips';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -47,6 +49,7 @@ function App() {
       case 'emprestimos': return <Emprestimos onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_devolucoes': return <HistoricoDevolucoes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'compras': return <ListaCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
+      case 'relacao_ips': return <RelacaoIps />;
       case 'historico_compras': return <HistoricoCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_ajustes': return <HistoricoAjustes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_movimentacoes': return <HistoricoMovimentacoes onNavigate={(t) => setActiveTab(t as Tab)} />;
@@ -184,6 +187,12 @@ function App() {
             onClick={() => navigateTo('compras')}
           >
             Lista de Compras
+          </button>
+          <button 
+            className={activeTab === 'relacao_ips' ? 'btn btn-primary' : 'btn btn-outline'}
+            onClick={() => navigateTo('relacao_ips')}
+          >
+            Relação de IPs
           </button>
           <button
             className={activeTab === 'historicos' || activeTab === 'historico_movimentacoes' || activeTab === 'historico_compras' || activeTab === 'historico_devolucoes' || activeTab === 'historico_ajustes' ? 'btn btn-primary' : 'btn btn-outline'}

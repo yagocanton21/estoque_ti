@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import './FeedbackMessage.css';
 
 export type Feedback = {
   type: 'success' | 'error' | 'loading' | 'info';
