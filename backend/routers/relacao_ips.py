@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 
@@ -175,9 +175,12 @@ def exportar_planilha(db: Session = Depends(get_db)):
     output = gerar_planilha_exportacao(db)
     headers_resp = {
         "Content-Disposition": 'attachment; filename="relacao_ips.xlsx"',
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }
-    return StreamingResponse(output, headers=headers_resp)
+    return Response(
+        content=output.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers_resp
+    )
 
 
 def limpar_usuario_ad(val: str | None) -> str | None:
