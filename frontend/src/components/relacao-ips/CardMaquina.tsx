@@ -20,6 +20,22 @@ export function formatarUsuarioAd(ad?: string | null): string {
   return limpo.replace(/^@+/, '').trim();
 }
 
+export function simplificarNomeOffice(office?: string | null): string {
+  if (!office) return '';
+  const limpo = office.trim();
+  if (!limpo || /^(nao identificado|não identificado|falha na consulta|falha|sem office|-|—)$/i.test(limpo)) {
+    return '';
+  }
+  if (/\b(365|o365|m365)\b/i.test(limpo)) {
+    return 'Microsoft 365';
+  }
+  const matchAno = limpo.match(/\b(20\d\d)\b/);
+  if (matchAno) {
+    return `Office ${matchAno[1]}`;
+  }
+  return limpo;
+}
+
 export function CardMaquina({
   maquina: m,
   ipCopiadoId,
@@ -87,7 +103,7 @@ export function CardMaquina({
         </div>
         <div>
           <em>Office</em>
-          <span>{m.office || '—'}</span>
+          <span title={m.office || ''}>{simplificarNomeOffice(m.office) || '—'}</span>
         </div>
         <div>
           <em>Antivírus</em>

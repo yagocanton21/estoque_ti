@@ -228,12 +228,14 @@ export function ModalMaquina({
               />
               <datalist id="office-datalist">
                 <option value="Microsoft 365" />
-                <option value="Office 2021 Standard" />
-                <option value="Office 2021 Pro" />
-                <option value="Office 2019 Standard" />
-                <option value="Office 2019 Home & Business" />
+                <option value="Office 2021" />
+                <option value="Office 2019" />
                 <option value="Office 2016" />
-                <option value="Sem Office / LibreOffice" />
+                <option value="Office 2013" />
+                <option value="Office 2010" />
+                <option value="Office 2007" />
+                <option value="Office 2003" />
+                <option value="Sem Office" />
               </datalist>
             </label>
 

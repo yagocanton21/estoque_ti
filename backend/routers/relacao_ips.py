@@ -17,6 +17,7 @@ from services.planilha_ips import (
     parse_planilha_bytes,
     processar_linhas_importadas,
     gerar_planilha_exportacao,
+    simplificar_nome_office,
 )
 
 router = APIRouter(prefix="/relacao-ips", tags=["Relação de IPs / Máquinas"])
@@ -203,7 +204,7 @@ def criar_maquina(dados: MaquinaCreate, db: Session = Depends(get_db)):
         usuario_ad=limpar_usuario_ad(dados.usuario_ad),
         ip=dados.ip.strip() if dados.ip else None,
         sistema_operacional=dados.sistema_operacional.strip() if dados.sistema_operacional else None,
-        office=dados.office.strip() if dados.office else None,
+        office=simplificar_nome_office(dados.office),
         setor=dados.setor.strip() if dados.setor else None,
         antivirus=dados.antivirus.strip() if dados.antivirus else None,
         observacoes=dados.observacoes.strip() if dados.observacoes else None,
@@ -238,7 +239,7 @@ def atualizar_maquina(id: int, dados: MaquinaUpdate, db: Session = Depends(get_d
     maquina.usuario_ad = limpar_usuario_ad(dados.usuario_ad)
     maquina.ip = dados.ip.strip() if dados.ip else None
     maquina.sistema_operacional = dados.sistema_operacional.strip() if dados.sistema_operacional else None
-    maquina.office = dados.office.strip() if dados.office else None
+    maquina.office = simplificar_nome_office(dados.office)
     maquina.setor = dados.setor.strip() if dados.setor else None
     maquina.antivirus = dados.antivirus.strip() if dados.antivirus else None
     maquina.observacoes = dados.observacoes.strip() if dados.observacoes else None

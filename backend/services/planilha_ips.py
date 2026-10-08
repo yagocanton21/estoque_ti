@@ -62,6 +62,35 @@ def normalizar_coluna(nome: str) -> str:
     return texto
 
 
+def simplificar_nome_office(texto: str | None) -> str | None:
+    """Normaliza nomes longos do Office para formato enxuto (ex: Office 2013, Microsoft 365)."""
+    if not texto:
+        return None
+    limpo = texto.strip()
+    if not limpo or limpo.lower() in [
+        "nao identificado",
+        "não identificado",
+        "falha na consulta",
+        "falha",
+        "sem office",
+        "nenhum",
+        "none",
+        "null",
+        "-",
+        "—",
+    ]:
+        return None
+
+    if re.search(r"\b(365|o365|m365)\b", limpo, re.IGNORECASE):
+        return "Microsoft 365"
+
+    m_ano = re.search(r"\b(20\d\d)\b", limpo)
+    if m_ano:
+        return f"Office {m_ano.group(1)}"
+
+    return limpo
+
+
 def parse_planilha_bytes(conteudo: bytes, filename: str) -> List[Dict[str, str]]:
     """Extrai lista de dicionários a partir do binário de um arquivo Excel ou CSV."""
     linhas_dados: List[Dict[str, str]] = []
@@ -170,7 +199,8 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
             setor = setor.capitalize()
 
         so = (linha.get("sistema_operacional") or "").strip()
-        office = (linha.get("office") or "").strip()
+        office_bruto = (linha.get("office") or "").strip()
+        office = simplificar_nome_office(office_bruto) or ""
         av = (linha.get("antivirus") or "").strip()
         obs = (linha.get("observacoes") or "").strip()
 
