@@ -82,3 +82,41 @@ def test_importar_e_exportar_relacao_ips(client):
     assert export_resp.status_code == 200
     assert export_resp.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     assert len(export_resp.content) > 0
+
+
+def test_limpeza_dominio_arthicom(client):
+    # Teste via CRUD manual
+    resp = client.post(
+        "/relacao-ips/",
+        json={
+            "nome_maquina": "CQ-TESTE",
+            "usuario": "Controle Qualidade",
+            "usuario_ad": r"ARTHICOM\controle.qualidade4",
+            "ip": "192.168.10.199",
+        },
+    )
+    assert resp.status_code == 201
+    assert resp.json()["usuario_ad"] == "controle.qualidade4"
+
+    # Teste via importação com coluna Usuario contendo ARTHICOM\
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["Maquina", "Usuario", "IP_rede_interna_192.168.10", "Setor"])
+    ws.append(["CQ-04", r"ARTHICOM\controle.qualidade4", "192.168.10.195", "Controle qualidade"])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    import_resp = client.post(
+        "/relacao-ips/importar",
+        files={"file": ("inventario.xlsx", buf, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+    )
+    assert import_resp.status_code == 200
+
+    busca = client.get("/relacao-ips/?q=CQ-04")
+    assert busca.status_code == 200
+    item = busca.json()["items"][0]
+    assert item["usuario_ad"] == "controle.qualidade4"
+    assert "ARTHICOM" not in (item["usuario_ad"] or "")
+

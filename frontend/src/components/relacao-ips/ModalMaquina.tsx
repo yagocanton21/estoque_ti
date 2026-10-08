@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Maquina, MaquinaFormDados } from './types';
+import { formatarUsuarioAd } from './CardMaquina';
 
 interface ModalMaquinaProps {
   maquinaParaEditar?: Maquina | null;
@@ -28,7 +29,6 @@ export function ModalMaquina({
     observacoes: '',
     ativo: true,
   });
-
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function ModalMaquina({
         nome_maquina: maquinaParaEditar.nome_maquina || '',
         ip: maquinaParaEditar.ip || '',
         usuario: maquinaParaEditar.usuario || '',
-        usuario_ad: maquinaParaEditar.usuario_ad || '',
+        usuario_ad: formatarUsuarioAd(maquinaParaEditar.usuario_ad),
         setor: maquinaParaEditar.setor || '',
         sistema_operacional: maquinaParaEditar.sistema_operacional || '',
         office: maquinaParaEditar.office || '',
@@ -78,7 +78,7 @@ export function ModalMaquina({
           nome_maquina: nomeLimpo,
           ip: formData.ip.trim(),
           usuario: formData.usuario.trim(),
-          usuario_ad: formData.usuario_ad.trim(),
+          usuario_ad: formatarUsuarioAd(formData.usuario_ad),
           setor: formData.setor.trim(),
           sistema_operacional: formData.sistema_operacional.trim(),
           office: formData.office.trim(),

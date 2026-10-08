@@ -141,12 +141,21 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
         usuario = (linha.get("usuario") or "").strip()
         usuario_ad = (linha.get("usuario_ad") or "").strip()
         if "\\" in usuario and not usuario_ad:
-            usuario_ad = usuario
+            partes = usuario.split("\\", 1)
+            usuario_ad = partes[1].strip()
+            usuario = partes[1].replace(".", " ").title()
+        elif "\\" in usuario:
             partes = usuario.split("\\", 1)
             usuario = partes[1].replace(".", " ").title()
 
+        # Limpar prefixo de domínio de rede (ex: ARTHICOM\controle.qualidade -> controle.qualidade)
+        if "\\" in usuario_ad:
+            usuario_ad = usuario_ad.split("\\", 1)[1].strip()
+        if "/" in usuario_ad:
+            usuario_ad = usuario_ad.split("/", 1)[1].strip()
+
         if usuario_ad.startswith("@"):
-            usuario_ad = usuario_ad[1:]
+            usuario_ad = usuario_ad.lstrip("@").strip()
 
         setor = (linha.get("setor") or "").strip()
         if setor and setor.islower():

@@ -8,6 +8,18 @@ interface CardMaquinaProps {
   onExcluir: (m: Maquina) => void;
 }
 
+export function formatarUsuarioAd(ad?: string | null): string {
+  if (!ad) return '';
+  let limpo = ad.trim();
+  if (limpo.includes('\\')) {
+    limpo = limpo.split('\\').pop() || limpo;
+  }
+  if (limpo.includes('/')) {
+    limpo = limpo.split('/').pop() || limpo;
+  }
+  return limpo.replace(/^@+/, '').trim();
+}
+
 export function CardMaquina({
   maquina: m,
   ipCopiadoId,
@@ -15,6 +27,8 @@ export function CardMaquina({
   onEditar,
   onExcluir,
 }: CardMaquinaProps) {
+  const usuarioAdLimpo = formatarUsuarioAd(m.usuario_ad);
+
   return (
     <div className="machine-list-row">
       <div className="ml-cell ml-machine">
@@ -42,7 +56,11 @@ export function CardMaquina({
         <span className="ml-user-name" title={m.usuario || ''}>
           {m.usuario || <span className="ml-muted">Não informado</span>}
         </span>
-        {m.usuario_ad && <span className="ad-badge">@{m.usuario_ad}</span>}
+        {usuarioAdLimpo && (
+          <span className="ad-badge" title={`Usuário AD: ${usuarioAdLimpo}`}>
+            @{usuarioAdLimpo}
+          </span>
+        )}
       </div>
 
       <div className="ml-cell ml-setor">

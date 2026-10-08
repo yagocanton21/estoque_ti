@@ -179,6 +179,18 @@ def exportar_planilha(db: Session = Depends(get_db)):
     return StreamingResponse(output, headers=headers_resp)
 
 
+def limpar_usuario_ad(val: str | None) -> str | None:
+    if not val:
+        return None
+    limpo = val.strip()
+    if "\\" in limpo:
+        limpo = limpo.split("\\", 1)[1].strip()
+    if "/" in limpo:
+        limpo = limpo.split("/", 1)[1].strip()
+    limpo = limpo.lstrip("@").strip()
+    return limpo or None
+
+
 @router.post("/", response_model=MaquinaResponse, status_code=201)
 def criar_maquina(dados: MaquinaCreate, db: Session = Depends(get_db)):
     nome_limpo = dados.nome_maquina.strip()
@@ -188,7 +200,7 @@ def criar_maquina(dados: MaquinaCreate, db: Session = Depends(get_db)):
     maquina = Maquina(
         usuario=dados.usuario.strip() if dados.usuario else None,
         nome_maquina=nome_limpo,
-        usuario_ad=dados.usuario_ad.strip() if dados.usuario_ad else None,
+        usuario_ad=limpar_usuario_ad(dados.usuario_ad),
         ip=dados.ip.strip() if dados.ip else None,
         sistema_operacional=dados.sistema_operacional.strip() if dados.sistema_operacional else None,
         office=dados.office.strip() if dados.office else None,
@@ -223,7 +235,7 @@ def atualizar_maquina(id: int, dados: MaquinaUpdate, db: Session = Depends(get_d
 
     maquina.usuario = dados.usuario.strip() if dados.usuario else None
     maquina.nome_maquina = nome_limpo
-    maquina.usuario_ad = dados.usuario_ad.strip() if dados.usuario_ad else None
+    maquina.usuario_ad = limpar_usuario_ad(dados.usuario_ad)
     maquina.ip = dados.ip.strip() if dados.ip else None
     maquina.sistema_operacional = dados.sistema_operacional.strip() if dados.sistema_operacional else None
     maquina.office = dados.office.strip() if dados.office else None

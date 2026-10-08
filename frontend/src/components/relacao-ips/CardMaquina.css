@@ -12,7 +12,7 @@
 .machine-list-header,
 .machine-list-row {
   display: grid;
-  grid-template-columns: minmax(170px, 1.2fr) minmax(180px, 1.3fr) minmax(110px, 0.8fr) minmax(240px, 1.8fr) auto;
+  grid-template-columns: minmax(160px, 1.1fr) minmax(200px, 1.4fr) minmax(130px, 1fr) minmax(220px, 1.5fr) auto;
   gap: 1rem;
   align-items: center;
   padding: 0 1.1rem;
@@ -128,6 +128,10 @@
 
 .ad-badge {
   display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
   background: rgba(0, 85, 255, 0.12);
   color: #93c5fd;
   border: 1px solid rgba(0, 85, 255, 0.25);
