@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { formatarData } from '../utils/formatters';
 import './Emprestimos.css';
 
 interface EmprestimoItem {
@@ -44,11 +45,6 @@ export function HistoricoDevolucoes({ onNavigate }: HistoricoDevolucoesProps) {
   const totalPages = Math.ceil(historico.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginaAtual = historico.slice(startIndex, startIndex + itemsPerPage);
-
-  const formatarData = (data: string | null) => {
-    if (!data) return 'N/A';
-    return new Date(`${data}Z`).toLocaleString('pt-BR');
-  };
 
   return (
     <>

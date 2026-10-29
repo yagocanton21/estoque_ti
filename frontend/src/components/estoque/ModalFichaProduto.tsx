@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { Item, ItemHistoricoDados } from './types';
 import { formatarUrlFoto } from './utils';
+import { formatarData } from '../../utils/formatters';
 import './ModalFichaProduto.css';
 
 interface ModalFichaProdutoProps {
@@ -9,21 +10,6 @@ interface ModalFichaProdutoProps {
   onClose: () => void;
   onEditar: (item: Item) => void;
   onExcluir: (item: Item) => void;
-}
-
-function formatarDataHora(isoString: string): string {
-  try {
-    const data = new Date(isoString);
-    return data.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return isoString;
-  }
 }
 
 export function ModalFichaProduto({ itemId, onClose, onEditar, onExcluir }: ModalFichaProdutoProps) {
@@ -197,7 +183,7 @@ export function ModalFichaProduto({ itemId, onClose, onEditar, onExcluir }: Moda
                               ? `-${mov.quantidade} un. (Saída)`
                               : `Ajuste (${mov.quantidade_anterior ?? '?'} → ${mov.quantidade_resultante ?? mov.quantidade} un.)`}
                           </span>
-                          <span className="timeline-date">{formatarDataHora(mov.data)}</span>
+                          <span className="timeline-date">{formatarData(mov.data)}</span>
                         </div>
 
                         {mov.entregue_para && (

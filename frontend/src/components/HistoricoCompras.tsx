@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { formatarData, formatarMoeda } from '../utils/formatters';
 import './HistoricoCompras.css';
 
 interface ListaComprasItem {
@@ -101,18 +102,6 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
 
   const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
   const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
-
-  const formatarData = (dataStr: string | null) => {
-    if (!dataStr) return 'Data desconhecida';
-    const possuiFuso = /(?:Z|[+-]\d{2}:\d{2})$/.test(dataStr);
-    const data = new Date(possuiFuso ? dataStr : `${dataStr}Z`);
-    return data.toLocaleString('pt-BR');
-  };
-
-  const formatarMoeda = (valor: number) => valor.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
 
   return (
     <>
