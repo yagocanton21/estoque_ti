@@ -1,0 +1,13 @@
+{
+  "Data": {
+    "ParsedResult": "Error", "MainOperation": "Backup",
+    "BeginTime": "2026-10-09T23:00:03.1234567Z", "EndTime": "2026-10-09T23:00:41.7654321Z",
+    "Duration": "00:00:38.6419754",
+    "ExaminedFiles": 118, "AddedFiles": 0, "ModifiedFiles": 0, "SizeOfAddedFiles": 0,
+    "ErrorsActualLength": 2, "WarningsActualLength": 1,
+    "Errors": ["Failed to connect: SSL connection could not be established", "Backend failure after 5 retries"],
+    "Warnings": ["Retrying upload"]
+  },
+  "Extra": { "OperationName": "Backup", "backup-name": "GDrive <Financeiro>", "backup-id": "DB-3" },
+  "LogLines": []
+}

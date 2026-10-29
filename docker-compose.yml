@@ -4,6 +4,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: sqlite:////data/estoque.db
+      # Painel de backups: regras, apelidos e tokens em data/backup_monitor.json;
+      # as variáveis abaixo (opcionais, via .env) sobrepõem os tokens do arquivo.
+      BACKUP_INGEST_TOKEN: ${BACKUP_INGEST_TOKEN:-}
+      BACKUP_ADMIN_TOKEN: ${BACKUP_ADMIN_TOKEN:-}
     ports:
       - "8000:8000"
     volumes:
