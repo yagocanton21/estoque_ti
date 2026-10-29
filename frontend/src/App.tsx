@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import { Dashboard } from './components/Dashboard';
 import { Estoque } from './components/Estoque';
 import { ConsultaEstoque } from './components/ConsultaEstoque';
@@ -12,14 +13,38 @@ import { Historicos } from './components/Historicos';
 import { HistoricoAjustes } from './components/HistoricoAjustes';
 import { HistoricoMovimentacoes } from './components/HistoricoMovimentacoes';
 import { RelacaoIps } from './components/RelacaoIps';
+import { Backups } from './components/painel-backups/Backups';
+import type { ResumoBackups } from './components/painel-backups/types';
 import './components/AppShell.css';
 
-type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_movimentacoes' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes' | 'relacao_ips';
+type Tab = 'dashboard' | 'consulta_estoque' | 'estoque_critico' | 'cadastro_estoque' | 'movimentacoes' | 'compras' | 'historicos' | 'historico_movimentacoes' | 'historico_compras' | 'historico_ajustes' | 'emprestimos' | 'historico_devolucoes' | 'relacao_ips' | 'backups';
+
+const INTERVALO_RESUMO_BACKUPS_MS = 60_000;
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [resumoBackups, setResumoBackups] = useState<ResumoBackups | null>(null);
+  const [erroBackups, setErroBackups] = useState(false);
+
+  // Resumo dos backups fica no App: alimenta a Visão Geral e o contador do menu
+  const carregarResumoBackups = useCallback(async () => {
+    try {
+      const res = await axios.get<ResumoBackups>('/api/backups/resumo');
+      setResumoBackups(res.data);
+      setErroBackups(false);
+    } catch (error) {
+      console.error('Erro ao consultar o resumo dos backups:', error);
+      setErroBackups(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    carregarResumoBackups();
+    const timer = setInterval(carregarResumoBackups, INTERVALO_RESUMO_BACKUPS_MS);
+    return () => clearInterval(timer);
+  }, [carregarResumoBackups]);
 
   useEffect(() => {
     const closeMenus = (event: KeyboardEvent) => {
@@ -41,7 +66,7 @@ function App() {
 
   const renderTab = () => {
     switch(activeTab) {
-      case 'dashboard': return <Dashboard onNavigate={(t) => setActiveTab(t as Tab)} />;
+      case 'dashboard': return <Dashboard onNavigate={(t) => setActiveTab(t as Tab)} resumoBackups={resumoBackups} erroBackups={erroBackups} />;
       case 'consulta_estoque': return <ConsultaEstoque />;
       case 'estoque_critico': return <EstoqueCritico onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'cadastro_estoque': return <Estoque />;
@@ -50,11 +75,12 @@ function App() {
       case 'historico_devolucoes': return <HistoricoDevolucoes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'compras': return <ListaCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'relacao_ips': return <RelacaoIps />;
+      case 'backups': return <Backups onAtualizado={carregarResumoBackups} />;
       case 'historico_compras': return <HistoricoCompras onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_ajustes': return <HistoricoAjustes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historico_movimentacoes': return <HistoricoMovimentacoes onNavigate={(t) => setActiveTab(t as Tab)} />;
       case 'historicos': return <Historicos onNavigate={(t) => setActiveTab(t as Tab)} />;
-      default: return <Dashboard onNavigate={(t) => setActiveTab(t as Tab)} />;
+      default: return <Dashboard onNavigate={(t) => setActiveTab(t as Tab)} resumoBackups={resumoBackups} erroBackups={erroBackups} />;
     }
   };
 
@@ -193,6 +219,15 @@ function App() {
             onClick={() => navigateTo('relacao_ips')}
           >
             Relação de IPs
+          </button>
+          <button
+            className={activeTab === 'backups' ? 'btn btn-primary' : 'btn btn-outline'}
+            onClick={() => navigateTo('backups')}
+          >
+            Backups
+            {resumoBackups && resumoBackups.problemas > 0 && (
+              <span className="nav-problem-count" title="Backups com problema">{resumoBackups.problemas}</span>
+            )}
           </button>
           <button
             className={activeTab === 'historicos' || activeTab === 'historico_movimentacoes' || activeTab === 'historico_compras' || activeTab === 'historico_devolucoes' || activeTab === 'historico_ajustes' ? 'btn btn-primary' : 'btn btn-outline'}

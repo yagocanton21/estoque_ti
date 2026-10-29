@@ -1,0 +1,5 @@
+{
+  "Exception": "System.IO.IOException: The network path was not found.",
+  "Extra": { "OperationName": "Backup", "backup-name": "NAS - Projetos" },
+  "LogLines": ["Starting backup", "Failed: The network path was not found."]
+}

@@ -12,6 +12,7 @@ if "test" not in TEST_DATABASE_URL.lower() and "/tmp/" not in TEST_DATABASE_URL.
     raise RuntimeError("Os testes só podem usar um banco temporário identificado como teste.")
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+os.environ["BACKUP_CHECK_MINUTES"] = "0"  # sem a verificação periódica do painel de backups nos testes
 
 backend_dir = Path(__file__).resolve().parents[1]
 alembic_config = Config(str(backend_dir / "alembic.ini"))

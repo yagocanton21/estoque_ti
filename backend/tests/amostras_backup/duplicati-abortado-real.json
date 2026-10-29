@@ -1,0 +1,14 @@
+{
+ "Data": {
+  "ClassName": "System.IO.IOException",
+  "Message": "Backup aborted since the source path D:/Documentos/ does not exist.  Please verify that the source path exists, or remove the source path from the backup configuration, or set the allow-missing-source option.",
+  "Data": null,
+  "InnerException": null,
+  "StackTraceString": "   em Duplicati.Library.Main.Controller.ExpandInputSources(String[] inputsources, IFilter filter)"
+ },
+ "Extra": {
+  "OperationName": "Backup",
+  "backup-name": "Projetos E2E"
+ },
+ "LogLines": []
+}

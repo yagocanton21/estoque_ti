@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { ResumoBackups } from './painel-backups/ResumoBackups';
+import type { ResumoBackups as Resumo } from './painel-backups/types';
 import './Dashboard.css';
 
 interface Item {
@@ -18,10 +20,12 @@ interface ListaComprasItem {
 }
 
 interface DashboardProps {
-  onNavigate: (tab: 'compras' | 'estoque_critico' | 'consulta_estoque' | 'cadastro_estoque' | 'movimentacoes') => void;
+  onNavigate: (tab: 'compras' | 'estoque_critico' | 'consulta_estoque' | 'cadastro_estoque' | 'movimentacoes' | 'backups') => void;
+  resumoBackups: Resumo | null;
+  erroBackups: boolean;
 }
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard({ onNavigate, resumoBackups, erroBackups }: DashboardProps) {
   const [itens, setItens] = useState<Item[]>([]);
   const [listaCompras, setListaCompras] = useState<ListaComprasItem[]>([]);
   const [feedback, setFeedback] = useState<Feedback | null>({ type: 'loading', text: 'Carregando informações do estoque...' });
@@ -101,7 +105,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             Ver Lista
           </button>
         </div>
-        
+
+        <ResumoBackups resumo={resumoBackups} erro={erroBackups} onVerTodos={() => onNavigate('backups')} />
+
         <div className="card dashboard-critical-card">
           <div className="flex justify-between items-center dashboard-card-header">
             <h2>Produtos no Limite ou Abaixo do Mínimo</h2>
