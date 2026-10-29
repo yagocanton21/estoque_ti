@@ -224,8 +224,35 @@ function App() {
       </header>
 
       <div className="history-shortcuts">
+        <div className="topbar-user-badge">
+          <span>👤</span>
+          <span>{usuarioLogado || 'admin'}</span>
+        </div>
+
         <button
-          className="btn btn-outline"
+          className="btn btn-topbar-logout"
+          onClick={handleLogout}
+          title="Sair do sistema"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Sair</span>
+        </button>
+
+        <button
+          className="btn btn-outline btn-settings"
           onClick={() => setSettingsOpen(!settingsOpen)}
           aria-expanded={settingsOpen}
           aria-controls="history-shortcuts-menu"
@@ -274,6 +301,14 @@ function App() {
               onClick={() => navigateTo('historico_ajustes')}
             >
               <span style={{ marginRight: '8px' }}>±</span> Histórico de Ajustes
+            </button>
+            <hr style={{ borderColor: 'var(--glass-border)', margin: '0.4rem 0' }} />
+            <button
+              className="btn btn-outline"
+              onClick={handleLogout}
+              style={{ color: '#fca5a5' }}
+            >
+              <span style={{ marginRight: '8px' }}>🚪</span> Sair da Conta
             </button>
           </div>
         )}
@@ -371,6 +406,28 @@ function App() {
             onClick={() => navigateTo('historicos')}
           >
             Históricos
+          </button>
+          <button
+            type="button"
+            className="btn btn-logout-sidebar"
+            onClick={handleLogout}
+            title="Sair do sistema"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Sair</span>
           </button>
         </nav>
 
