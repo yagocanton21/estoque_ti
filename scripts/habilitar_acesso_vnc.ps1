@@ -1,6 +1,6 @@
 # Script para associar o protocolo vnc:// ao UltraVNC Viewer no Windows
 # Permite que o botão "Acessar" do Estoque TI abra a máquina diretamente no UltraVNC.
-# Suporta login automático com fallback de senhas (1º ARJArthi -> 2º monitor).
+# Suporta login automático com fallback de senhas (1º ARJArthi -> 2º monitor) e logs em %LOCALAPPDATA%\vnc_acesso.log.
 # Não requer privilégios de Administrador (grava em HKCU).
 
 $vncPaths = @(
@@ -26,10 +26,20 @@ if (-not $vncExe) {
 
 Write-Host "[INFO] UltraVNC Viewer localizado em: $vncExe" -ForegroundColor Cyan
 
-# Cria o launcher VBScript limpo e confiavel (sem tela preta de prompt e com auto-login e fallback)
+# Cria o launcher VBScript limpo e confiavel (sem tela preta de prompt, com auto-login desanexado, fallback e logs)
 $vbsPath = "$env:LOCALAPPDATA\vnc_launcher.vbs"
 $vbsContent = @"
 Set WshShell = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+logPath = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\vnc_acesso.log"
+
+Sub LogMsg(msg)
+    On Error Resume Next
+    Set f = fso.OpenTextFile(logPath, 8, True)
+    f.WriteLine Now & " - " & msg
+    f.Close
+End Sub
+
 Set args = WScript.Arguments
 If args.Count > 0 Then
     url = args(0)
@@ -40,22 +50,31 @@ If args.Count > 0 Then
     
     If url <> "" Then
         vncExe = "$vncExe"
+        LogMsg "Iniciando conexao para " & url
         
-        ' 1ª tentativa: senha padrao ARJArthi
-        Set exec1 = WshShell.Exec("""" & vncExe & """ " & url & " -password ARJArthi")
+        ' 1ª tentativa: senha padrao ARJArthi (processo desanexado com Run)
+        WshShell.Run """" & vncExe & """ " & url & " -password ARJArthi", 1, False
         WScript.Sleep 1400
         
         ' Se falhou a autenticacao, fecha e tenta a 2ª senha (monitor)
         If WshShell.AppActivate("VncViewer Message Box") Or WshShell.AppActivate("VNC Authentication") Then
-            exec1.Terminate
-            Set exec2 = WshShell.Exec("""" & vncExe & """ " & url & " -password monitor")
+            LogMsg "Senha ARJArthi rejeitada para " & url & ". Tentando fallback com monitor..."
+            WshShell.Run "taskkill /f /im vncviewer.exe", 0, True
+            WScript.Sleep 300
+            WshShell.Run """" & vncExe & """ " & url & " -password monitor", 1, False
             WScript.Sleep 1400
             
             ' Se a 2ª senha tambem falhar, abre sem senha para digitar manualmente
             If WshShell.AppActivate("VncViewer Message Box") Or WshShell.AppActivate("VNC Authentication") Then
-                exec2.Terminate
+                LogMsg "Senha monitor tambem rejeitada para " & url & ". Abrindo tela padrao sem senha..."
+                WshShell.Run "taskkill /f /im vncviewer.exe", 0, True
+                WScript.Sleep 300
                 WshShell.Run """" & vncExe & """ " & url, 1, False
+            Else
+                LogMsg "Conectado com sucesso em " & url & " usando senha monitor!"
             End If
+        Else
+            LogMsg "Conectado com sucesso em " & url & " usando senha ARJArthi!"
         End If
     End If
 End If
@@ -75,4 +94,5 @@ Set-ItemProperty -Path $cmdKey -Name "(Default)" -Value $regCmd
 
 Write-Host "[SUCESSO] Protocolo vnc:// configurado com sucesso no Windows!" -ForegroundColor Green
 Write-Host "Auto-login ativo: 1º ARJArthi -> 2º monitor." -ForegroundColor Green
+Write-Host "Logs salvos em: $env:LOCALAPPDATA\vnc_acesso.log" -ForegroundColor Cyan
 Write-Host "Agora, qualquer clique em 'Acessar' entrara diretamente na maquina correta." -ForegroundColor Green
