@@ -6,3 +6,4 @@ alembic==1.16.5
 python-multipart==0.0.9
 Pillow
 openpyxl
+PyJWT==2.10.1

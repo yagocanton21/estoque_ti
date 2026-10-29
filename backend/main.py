@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from routers import itens, movimentacoes, lista_compras, emprestimos, relacao_ips, equipamentos, backups
+from routers import itens, movimentacoes, lista_compras, emprestimos, relacao_ips, equipamentos, backups, auth
 from services.backups import iniciar_verificacao_periodica, parar_verificacao_periodica
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -41,3 +41,4 @@ app.include_router(emprestimos.router)
 app.include_router(relacao_ips.router)
 app.include_router(equipamentos.router)
 app.include_router(backups.router)
+app.include_router(auth.router)
