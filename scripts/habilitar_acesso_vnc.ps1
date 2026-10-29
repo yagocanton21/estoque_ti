@@ -1,5 +1,6 @@
 # Script para associar o protocolo vnc:// ao UltraVNC Viewer no Windows
 # Permite que o botão "Acessar" do Estoque TI abra a máquina diretamente no UltraVNC.
+# Suporta login automático com fallback de senhas (ARJArthi -> monitor).
 # Não requer privilégios de Administrador (grava em HKCU).
 
 $vncPaths = @(
@@ -25,18 +26,27 @@ if (-not $vncExe) {
 
 Write-Host "[INFO] UltraVNC Viewer localizado em: $vncExe" -ForegroundColor Cyan
 
-# Cria o launcher VBScript limpo (sem tela preta de prompt e sem colisao de aspas)
+# Copia o script PowerShell do launcher inteligente para o AppData
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$sourcePs1 = Join-Path $scriptDir "vnc_launcher.ps1"
+$targetPs1 = "$env:LOCALAPPDATA\vnc_launcher.ps1"
+
+if (Test-Path $sourcePs1) {
+    Copy-Item $sourcePs1 $targetPs1 -Force
+} else {
+    Write-Host "[AVISO] Arquivo $sourcePs1 nao encontrado localmente." -ForegroundColor Yellow
+}
+
+# Cria o launcher VBScript limpo (sem tela preta de prompt)
 $vbsPath = "$env:LOCALAPPDATA\vnc_launcher.vbs"
 $vbsContent = @"
 Set WshShell = CreateObject("WScript.Shell")
 Set args = WScript.Arguments
 If args.Count > 0 Then
-    url = args(0)
-    url = Replace(url, "vnc://", "")
-    url = Replace(url, "vnc:", "")
-    url = Replace(url, "/", "")
-    url = Trim(url)
-    WshShell.Run """$vncExe"" " & url, 1, False
+    appData = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+    psScript = appData & "\vnc_launcher.ps1"
+    cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File """ & psScript & """ """ & args(0) & """"
+    WshShell.Run cmd, 0, False
 End If
 "@
 
@@ -53,4 +63,5 @@ $regCmd = "wscript.exe `"$vbsPath`" `"%1`""
 Set-ItemProperty -Path $cmdKey -Name "(Default)" -Value $regCmd
 
 Write-Host "[SUCESSO] Protocolo vnc:// configurado com sucesso no Windows!" -ForegroundColor Green
-Write-Host "Agora, qualquer clique em 'Acessar' abrira o UltraVNC diretamente no IP correto." -ForegroundColor Green
+Write-Host "Auto-login ativo com fallback: 1º ARJArthi -> 2º monitor." -ForegroundColor Green
+Write-Host "Agora, qualquer clique em 'Acessar' entrara diretamente na maquina." -ForegroundColor Green
