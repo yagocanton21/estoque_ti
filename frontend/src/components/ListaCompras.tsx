@@ -10,7 +10,7 @@ import './lista-compras/ListaCompras.css';
 
 export type { ListaComprasItem };
 
-export interface ListaComprasProps {
+interface ListaComprasProps {
   onNavigate: (tab: string) => void;
 }
 
