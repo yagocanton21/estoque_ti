@@ -140,7 +140,7 @@ export function CardMaquina({
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+          style={{ padding: '0.38rem 0.65rem', fontSize: '0.8rem' }}
           onClick={() => onEditar(m)}
           title="Editar máquina"
         >
@@ -149,7 +149,7 @@ export function CardMaquina({
         <button
           type="button"
           className="btn btn-outline btn-sm danger-outline-button"
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+          style={{ padding: '0.38rem 0.65rem', fontSize: '0.8rem' }}
           onClick={() => onExcluir(m)}
           title="Excluir máquina"
         >
