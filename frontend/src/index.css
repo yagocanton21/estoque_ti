@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   /* Dark Mode Palette */
   --bg-dark: #2a2d35; /* Cinza médio/escuro */
   --bg-card: rgba(45, 48, 56, 0.7);
@@ -26,11 +27,22 @@
   padding: 0;
 }
 
+html {
+  background-color: var(--bg-dark);
+  color-scheme: dark;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
   background: var(--bg-dark);
 }
 
