@@ -1,6 +1,6 @@
 # Script para associar o protocolo vnc:// ao UltraVNC Viewer no Windows
 # Permite que o botão "Acessar" do Estoque TI abra a máquina diretamente no UltraVNC.
-# Suporta login automático com fallback de senhas (1º ARJArthi -> 2º monitor) e logs em %LOCALAPPDATA%\vnc_acesso.log.
+# Suporta login automático com fallback de senhas (1º ARJArthi -> 2º monitor), perfis .vnc do usuário e logs.
 # Não requer privilégios de Administrador (grava em HKCU).
 
 $vncPaths = @(
@@ -26,7 +26,7 @@ if (-not $vncExe) {
 
 Write-Host "[INFO] UltraVNC Viewer localizado em: $vncExe" -ForegroundColor Cyan
 
-# Cria o launcher VBScript limpo e confiavel (sem tela preta de prompt, com auto-login desanexado, fallback e logs)
+# Cria o launcher VBScript limpo e confiavel
 $vbsPath = "$env:LOCALAPPDATA\vnc_launcher.vbs"
 $vbsContent = @"
 Set WshShell = CreateObject("WScript.Shell")
@@ -50,10 +50,22 @@ If args.Count > 0 Then
     
     If url <> "" Then
         vncExe = "$vncExe"
-        LogMsg "Iniciando conexao para " & url
         
-        ' 1ª tentativa: senha padrao ARJArthi (processo desanexado com Run)
-        WshShell.Run """" & vncExe & """ " & url & " -password ARJArthi", 1, False
+        appData = WshShell.ExpandEnvironmentStrings("%APPDATA%")
+        cfgHost = appData & "\UltraVNC\" & url & "-5900.vnc"
+        cfgOpt = appData & "\UltraVNC\options.vnc"
+        
+        cfgParam = url & " -quickoption 1 -autoscaling"
+        If fso.FileExists(cfgHost) Then
+            cfgParam = "-config """ & cfgHost & """"
+        ElseIf fso.FileExists(cfgOpt) Then
+            cfgParam = "-config """ & cfgOpt & """ " & url
+        End If
+        
+        LogMsg "Iniciando conexao para " & url & " (param: " & cfgParam & ")"
+        
+        ' 1ª tentativa: senha padrao ARJArthi com configuracao de video otimizada
+        WshShell.Run """" & vncExe & """ " & cfgParam & " -password ARJArthi", 1, False
         WScript.Sleep 1400
         
         ' Se falhou a autenticacao, fecha e tenta a 2ª senha (monitor)
@@ -61,7 +73,7 @@ If args.Count > 0 Then
             LogMsg "Senha ARJArthi rejeitada para " & url & ". Tentando fallback com monitor..."
             WshShell.Run "taskkill /f /im vncviewer.exe", 0, True
             WScript.Sleep 300
-            WshShell.Run """" & vncExe & """ " & url & " -password monitor", 1, False
+            WshShell.Run """" & vncExe & """ " & cfgParam & " -password monitor", 1, False
             WScript.Sleep 1400
             
             ' Se a 2ª senha tambem falhar, abre sem senha para digitar manualmente
@@ -69,7 +81,7 @@ If args.Count > 0 Then
                 LogMsg "Senha monitor tambem rejeitada para " & url & ". Abrindo tela padrao sem senha..."
                 WshShell.Run "taskkill /f /im vncviewer.exe", 0, True
                 WScript.Sleep 300
-                WshShell.Run """" & vncExe & """ " & url, 1, False
+                WshShell.Run """" & vncExe & """ " & cfgParam, 1, False
             Else
                 LogMsg "Conectado com sucesso em " & url & " usando senha monitor!"
             End If
@@ -94,5 +106,5 @@ Set-ItemProperty -Path $cmdKey -Name "(Default)" -Value $regCmd
 
 Write-Host "[SUCESSO] Protocolo vnc:// configurado com sucesso no Windows!" -ForegroundColor Green
 Write-Host "Auto-login ativo: 1º ARJArthi -> 2º monitor." -ForegroundColor Green
+Write-Host "Carregamento automatico de perfis .vnc habilitado." -ForegroundColor Cyan
 Write-Host "Logs salvos em: $env:LOCALAPPDATA\vnc_acesso.log" -ForegroundColor Cyan
-Write-Host "Agora, qualquer clique em 'Acessar' entrara diretamente na maquina correta." -ForegroundColor Green
