@@ -6,12 +6,8 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "estoque-ti-secret-key-change-in-production-2026")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or secrets.token_hex(32)
 JWT_ALGORITHM = "HS256"
-
-# Credenciais (podem ser substituídas por variáveis de ambiente no .env)
-AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin")
-AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "admin123")
 
 # Duração dos tokens
 DURACAO_TOKEN_PADRAO = timedelta(days=1)
@@ -20,13 +16,29 @@ DURACAO_TOKEN_LEMBRAR = timedelta(days=30)
 security = HTTPBearer(auto_error=False)
 
 
+def obter_credenciais_configuradas() -> tuple[str, str]:
+    """Obtém credenciais configuradas estritamente via variáveis de ambiente."""
+    username = (os.getenv("AUTH_USERNAME") or "").strip()
+    password = os.getenv("AUTH_PASSWORD") or ""
+    return username, password
+
+
 def verificar_credenciais(username: str, password: str) -> bool:
-    """Verifica usuário e senha de forma segura contra ataques de timing."""
+    """
+    Verifica usuário e senha de forma segura contra ataques de timing.
+    Se as variáveis de ambiente não estiverem configuradas, rejeita qualquer acesso.
+    """
+    config_user, config_pass = obter_credenciais_configuradas()
+
+    # Falha de segurança se não houver credenciais definidas no ambiente
+    if not config_user or not config_pass:
+        return False
+
     if not username or not password:
         return False
 
-    usuario_valido = secrets.compare_digest(username.strip(), AUTH_USERNAME)
-    senha_valida = secrets.compare_digest(password, AUTH_PASSWORD)
+    usuario_valido = secrets.compare_digest(username.strip(), config_user)
+    senha_valida = secrets.compare_digest(password, config_pass)
     return usuario_valido and senha_valida
 
 
@@ -81,4 +93,3 @@ def obter_usuario_logado(
         )
 
     return payload["sub"]
-

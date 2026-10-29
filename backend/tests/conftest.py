@@ -13,6 +13,8 @@ if "test" not in TEST_DATABASE_URL.lower() and "/tmp/" not in TEST_DATABASE_URL.
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["BACKUP_CHECK_MINUTES"] = "0"  # sem a verificação periódica do painel de backups nos testes
+os.environ["AUTH_USERNAME"] = "admin_teste"
+os.environ["AUTH_PASSWORD"] = "senha_teste_123"
 
 backend_dir = Path(__file__).resolve().parents[1]
 alembic_config = Config(str(backend_dir / "alembic.ini"))
