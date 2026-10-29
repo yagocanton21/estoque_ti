@@ -112,10 +112,35 @@ export function CardMaquina({
       </div>
 
       <div className="ml-cell ml-actions">
+        {m.ip && (
+          <a
+            href={`vnc://${m.ip}`}
+            className="btn btn-sm vnc-button"
+            title={`Abrir UltraVNC para conectar em ${m.ip}`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            Acessar
+          </a>
+        )}
         <button
           type="button"
           className="btn btn-outline btn-sm"
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+          style={{ padding: '0.38rem 0.65rem', fontSize: '0.8rem' }}
           onClick={() => onEditar(m)}
           title="Editar máquina"
         >
@@ -124,7 +149,7 @@ export function CardMaquina({
         <button
           type="button"
           className="btn btn-outline btn-sm danger-outline-button"
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+          style={{ padding: '0.38rem 0.65rem', fontSize: '0.8rem' }}
           onClick={() => onExcluir(m)}
           title="Excluir máquina"
         >

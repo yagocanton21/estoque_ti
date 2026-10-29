@@ -12,7 +12,7 @@
 .machine-list-header,
 .machine-list-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1.1fr) minmax(200px, 1.4fr) minmax(130px, 1fr) minmax(220px, 1.5fr) auto;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(180px, 1.3fr) minmax(110px, 0.9fr) minmax(200px, 1.4fr) 245px;
   gap: 1rem;
   align-items: center;
   padding: 0 1.1rem;
@@ -73,12 +73,15 @@
 .ml-software {
   gap: 0.25rem;
   font-size: 0.82rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ml-software > div {
   display: flex;
   gap: 0.5rem;
   align-items: baseline;
+  min-width: 0;
 }
 
 .ml-software em {
@@ -93,12 +96,45 @@
 
 .ml-software span {
   color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ml-actions {
   flex-direction: row;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.4rem;
+  width: 100%;
+}
+
+.vnc-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.18);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.vnc-button:hover {
+  background: rgba(37, 99, 235, 0.35);
+  color: #ffffff;
+  border-color: rgba(59, 130, 246, 0.7);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.vnc-button svg {
+  flex-shrink: 0;
 }
 
 .ip-badge-button {
@@ -158,7 +194,7 @@
 
 .equip-list .machine-list-header,
 .equip-list .machine-list-row {
-  grid-template-columns: minmax(170px, 1.2fr) minmax(220px, 1.4fr) minmax(120px, 0.8fr) minmax(160px, 1.2fr) auto;
+  grid-template-columns: minmax(170px, 1.2fr) minmax(220px, 1.4fr) minmax(120px, 0.8fr) minmax(160px, 1.2fr) 160px;
 }
 
 @media (max-width: 1000px) {
