@@ -1,6 +1,6 @@
 # Script para associar o protocolo vnc:// ao UltraVNC Viewer no Windows
 # Permite que o botão "Acessar" do Estoque TI abra a máquina diretamente no UltraVNC.
-# Suporta login automático com fallback de senhas (ARJArthi -> monitor).
+# Suporta login automático com fallback de senhas (1º ARJArthi -> 2º monitor).
 # Não requer privilégios de Administrador (grava em HKCU).
 
 $vncPaths = @(
@@ -26,27 +26,38 @@ if (-not $vncExe) {
 
 Write-Host "[INFO] UltraVNC Viewer localizado em: $vncExe" -ForegroundColor Cyan
 
-# Copia o script PowerShell do launcher inteligente para o AppData
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sourcePs1 = Join-Path $scriptDir "vnc_launcher.ps1"
-$targetPs1 = "$env:LOCALAPPDATA\vnc_launcher.ps1"
-
-if (Test-Path $sourcePs1) {
-    Copy-Item $sourcePs1 $targetPs1 -Force
-} else {
-    Write-Host "[AVISO] Arquivo $sourcePs1 nao encontrado localmente." -ForegroundColor Yellow
-}
-
-# Cria o launcher VBScript limpo (sem tela preta de prompt)
+# Cria o launcher VBScript limpo e confiavel (sem tela preta de prompt e com auto-login e fallback)
 $vbsPath = "$env:LOCALAPPDATA\vnc_launcher.vbs"
 $vbsContent = @"
 Set WshShell = CreateObject("WScript.Shell")
 Set args = WScript.Arguments
 If args.Count > 0 Then
-    appData = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
-    psScript = appData & "\vnc_launcher.ps1"
-    cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File """ & psScript & """ """ & args(0) & """"
-    WshShell.Run cmd, 0, False
+    url = args(0)
+    url = Replace(url, "vnc://", "")
+    url = Replace(url, "vnc:", "")
+    url = Replace(url, "/", "")
+    url = Trim(url)
+    
+    If url <> "" Then
+        vncExe = "$vncExe"
+        
+        ' 1ª tentativa: senha padrao ARJArthi
+        Set exec1 = WshShell.Exec("""" & vncExe & """ " & url & " -password ARJArthi")
+        WScript.Sleep 1400
+        
+        ' Se falhou a autenticacao, fecha e tenta a 2ª senha (monitor)
+        If WshShell.AppActivate("VncViewer Message Box") Or WshShell.AppActivate("VNC Authentication") Then
+            exec1.Terminate
+            Set exec2 = WshShell.Exec("""" & vncExe & """ " & url & " -password monitor")
+            WScript.Sleep 1400
+            
+            ' Se a 2ª senha tambem falhar, abre sem senha para digitar manualmente
+            If WshShell.AppActivate("VncViewer Message Box") Or WshShell.AppActivate("VNC Authentication") Then
+                exec2.Terminate
+                WshShell.Run """" & vncExe & """ " & url, 1, False
+            End If
+        End If
+    End If
 End If
 "@
 
@@ -63,5 +74,5 @@ $regCmd = "wscript.exe `"$vbsPath`" `"%1`""
 Set-ItemProperty -Path $cmdKey -Name "(Default)" -Value $regCmd
 
 Write-Host "[SUCESSO] Protocolo vnc:// configurado com sucesso no Windows!" -ForegroundColor Green
-Write-Host "Auto-login ativo com fallback: 1º ARJArthi -> 2º monitor." -ForegroundColor Green
-Write-Host "Agora, qualquer clique em 'Acessar' entrara diretamente na maquina." -ForegroundColor Green
+Write-Host "Auto-login ativo: 1º ARJArthi -> 2º monitor." -ForegroundColor Green
+Write-Host "Agora, qualquer clique em 'Acessar' entrara diretamente na maquina correta." -ForegroundColor Green
