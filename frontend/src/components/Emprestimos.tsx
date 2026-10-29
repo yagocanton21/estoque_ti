@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { formatarData } from '../utils/formatters';
 import './Emprestimos.css';
 
 interface EmprestimoItem {
@@ -131,10 +132,6 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
   };
 
   const totalPages = Math.ceil(total / itemsPerPage);
-
-  const formatarData = (data: string) => {
-    return new Date(`${data}Z`).toLocaleString('pt-BR');
-  };
 
   return (
     <>

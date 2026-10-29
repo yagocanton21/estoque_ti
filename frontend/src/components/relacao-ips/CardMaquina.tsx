@@ -20,7 +20,7 @@ export function formatarUsuarioAd(ad?: string | null): string {
   return limpo.replace(/^@+/, '').trim();
 }
 
-export function simplificarNomeOffice(office?: string | null): string {
+function simplificarNomeOffice(office?: string | null): string {
   if (!office) return '';
   const limpo = office.trim();
   if (!limpo || /^(nao identificado|não identificado|falha na consulta|falha|sem office|-|—)$/i.test(limpo)) {

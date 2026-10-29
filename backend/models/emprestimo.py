@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from database import Base
-from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
 class Emprestimo(Base):

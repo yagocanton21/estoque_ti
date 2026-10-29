@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
+import { formatarData } from '../utils/formatters';
 import './HistoricoMovimentacoes.css';
 
 type TipoMovimentacao = 'entrada' | 'saida';
@@ -65,11 +66,6 @@ export function HistoricoMovimentacoes({ onNavigate }: HistoricoMovimentacoesPro
   }, [pagina, busca, filtro]);
 
   const totalPaginas = Math.ceil(total / ITENS_POR_PAGINA);
-
-  const formatarData = (valor: string) => {
-    const possuiFuso = valor.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(valor);
-    return new Date(possuiFuso ? valor : `${valor}Z`).toLocaleString('pt-BR');
-  };
 
   const alterarFiltro = (novoFiltro: FiltroMovimentacao) => {
     setCarregando(true);

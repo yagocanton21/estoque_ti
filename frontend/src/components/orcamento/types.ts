@@ -21,6 +21,4 @@ export function converterMoeda(valor: string): number {
   return Number(normalizado);
 }
 
-export function formatarMoeda(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+export { formatarMoeda } from '../../utils/formatters';

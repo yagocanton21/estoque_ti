@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 class ItemCreate(BaseModel):           # entrada (POST/PUT)
@@ -15,8 +17,6 @@ class ItemResponse(ItemCreate):        # saída (GET)
         "from_attributes": True,
         "revalidate_instances": "never"  # não revalida dados vindos do banco
     }
-
-from datetime import datetime
 
 class ItemHistoricoMovimentacao(BaseModel):
     id: int
