@@ -9,7 +9,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "estoque-ti-secret-key-change-in-production-2026")
 JWT_ALGORITHM = "HS256"
 
-# Credenciais padrão para a equipe (podem ser substituídas por variáveis de ambiente)
+# Credenciais (podem ser substituídas por variáveis de ambiente no .env)
 AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin")
 AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "admin123")
 
