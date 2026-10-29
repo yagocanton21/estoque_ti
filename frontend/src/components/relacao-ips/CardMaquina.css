@@ -101,6 +101,34 @@
   gap: 0.4rem;
 }
 
+.vnc-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.18);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.vnc-button:hover {
+  background: rgba(37, 99, 235, 0.35);
+  color: #ffffff;
+  border-color: rgba(59, 130, 246, 0.7);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.vnc-button svg {
+  flex-shrink: 0;
+}
+
 .ip-badge-button {
   display: inline-flex;
   align-items: center;
