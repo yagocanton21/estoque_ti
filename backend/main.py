@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
 from routers import itens, movimentacoes, lista_compras, emprestimos, relacao_ips, equipamentos, backups, auth
+from services.auth import obter_usuario_logado
 from services.backups import iniciar_verificacao_periodica, parar_verificacao_periodica
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -34,11 +35,14 @@ app.add_middleware(
 def status_api():
     return {"mensagem": "API funcionando"}
 
-app.include_router(itens.router)
-app.include_router(movimentacoes.router)
-app.include_router(lista_compras.router)
-app.include_router(emprestimos.router)
-app.include_router(relacao_ips.router)
-app.include_router(equipamentos.router)
+# Dependência que exige token JWT válido para todas as rotas de negócio
+auth_guard = [Depends(obter_usuario_logado)]
+
+app.include_router(itens.router, dependencies=auth_guard)
+app.include_router(movimentacoes.router, dependencies=auth_guard)
+app.include_router(lista_compras.router, dependencies=auth_guard)
+app.include_router(emprestimos.router, dependencies=auth_guard)
+app.include_router(relacao_ips.router, dependencies=auth_guard)
+app.include_router(equipamentos.router, dependencies=auth_guard)
 app.include_router(backups.router)
 app.include_router(auth.router)

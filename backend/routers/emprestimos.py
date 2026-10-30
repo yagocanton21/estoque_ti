@@ -5,7 +5,7 @@ from models.emprestimo import Emprestimo
 from schemas.emprestimo import EmprestimoCreate, EmprestimoResponse
 from datetime import datetime, timezone
 from pydantic import BaseModel
-from sqlalchemy import or_
+from sqlalchemy import or_, update
 
 
 class EmprestimosPaginadosResponse(BaseModel):
@@ -59,17 +59,19 @@ def registrar_emprestimo(emp: EmprestimoCreate, db: Session = Depends(get_db)):
 
 @router.put("/{id}/devolver", response_model=EmprestimoResponse)
 def devolver_emprestimo(id: int, db: Session = Depends(get_db)):
-    emp = db.query(Emprestimo).filter(Emprestimo.id == id).first()
-    if not emp:
-        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
-    
-    if emp.devolvido:
+    agora = datetime.now(timezone.utc)
+    # Atualização atômica condicional: só atualiza se devolvido ainda for False
+    resultado = db.execute(
+        update(Emprestimo)
+        .where(Emprestimo.id == id, Emprestimo.devolvido.is_(False))
+        .values(devolvido=True, data_devolucao=agora)
+    )
+    if resultado.rowcount == 0:
+        emp = db.query(Emprestimo).filter(Emprestimo.id == id).first()
+        if not emp:
+            raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
         raise HTTPException(status_code=400, detail="Este item já foi devolvido")
 
-    emp.devolvido = True
-    emp.data_devolucao = datetime.now(timezone.utc)
-
     db.commit()
-    db.refresh(emp)
-
+    emp = db.query(Emprestimo).filter(Emprestimo.id == id).first()
     return emp

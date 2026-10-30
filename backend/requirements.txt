@@ -7,3 +7,4 @@ python-multipart==0.0.9
 Pillow
 openpyxl
 PyJWT==2.10.1
+reportlab>=4.0.0

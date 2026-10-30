@@ -6,7 +6,10 @@ from alembic import command
 from alembic.config import Config
 
 
-TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/estoque_test.db")
+import tempfile
+
+default_db_path = Path(tempfile.gettempdir()) / "estoque_test.db"
+TEST_DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{default_db_path.as_posix()}")
 
 if "test" not in TEST_DATABASE_URL.lower() and "/tmp/" not in TEST_DATABASE_URL.lower():
     raise RuntimeError("Os testes só podem usar um banco temporário identificado como teste.")
@@ -24,10 +27,22 @@ command.upgrade(alembic_config, "head")
 from database import Base, engine  # noqa: E402
 from main import app  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from services.auth import criar_token_acesso  # noqa: E402
 
 
 @pytest.fixture()
 def client():
+    with engine.begin() as connection:
+        for table in reversed(Base.metadata.sorted_tables):
+            connection.execute(table.delete())
+
+    token, _ = criar_token_acesso("admin_teste")
+    with TestClient(app, headers={"Authorization": f"Bearer {token}"}) as test_client:
+        yield test_client
+
+
+@pytest.fixture()
+def unauthenticated_client():
     with engine.begin() as connection:
         for table in reversed(Base.metadata.sorted_tables):
             connection.execute(table.delete())

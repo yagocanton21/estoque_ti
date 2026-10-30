@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
 import './Movimentacoes.css';
@@ -23,6 +23,7 @@ export function Movimentacoes() {
   const [observacao, setObservacao] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const emEnvioRef = useRef(false);
 
   useEffect(() => {
     if (busca.length <= 1 || produtoSelecionado) return;
@@ -41,6 +42,9 @@ export function Movimentacoes() {
 
   const registrarMovimentacao = async (evento: React.FormEvent) => {
     evento.preventDefault();
+    // Bloqueio síncrono e imediato contra duplo clique
+    if (emEnvioRef.current || salvando) return;
+
     if (!produtoSelecionado) {
       setFeedback({ type: 'error', text: 'Digite o nome e selecione um produto na lista de resultados.' });
       return;
@@ -61,27 +65,48 @@ export function Movimentacoes() {
       if (!confirmado) return;
     }
 
+    emEnvioRef.current = true;
     setSalvando(true);
     setFeedback({ type: 'loading', text: tipo === 'ajuste' ? 'Registrando ajuste...' : 'Registrando movimentação...' });
+
+    // Gera chave de idempotência única para esta submissão
+    const chaveIdempotencia = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `mov_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
     try {
       if (tipo === 'ajuste') {
-        await axios.post('/api/movimentacoes/ajuste', {
-          item_id: produtoSelecionado.id,
-          nova_quantidade: novaQuantidade,
-          motivo,
-        });
+        await axios.post(
+          '/api/movimentacoes/ajuste',
+          {
+            item_id: produtoSelecionado.id,
+            nova_quantidade: novaQuantidade,
+            motivo,
+            chave_idempotencia: chaveIdempotencia,
+          },
+          {
+            headers: { 'Idempotency-Key': chaveIdempotencia },
+          },
+        );
         setFeedback({
           type: 'success',
           text: `Estoque de “${produtoSelecionado.nome}” ajustado de ${produtoSelecionado.quantidade} para ${novaQuantidade}.`,
         });
       } else {
-        await axios.post('/api/movimentacoes/', {
-          item_id: produtoSelecionado.id,
-          tipo,
-          quantidade,
-          entregue_para: tipo === 'saida' && entreguePara.trim() ? entreguePara : null,
-          observacao: observacao.trim() ? observacao : null,
-        });
+        await axios.post(
+          '/api/movimentacoes/',
+          {
+            item_id: produtoSelecionado.id,
+            tipo,
+            quantidade,
+            entregue_para: tipo === 'saida' && entreguePara.trim() ? entreguePara : null,
+            observacao: observacao.trim() ? observacao : null,
+            chave_idempotencia: chaveIdempotencia,
+          },
+          {
+            headers: { 'Idempotency-Key': chaveIdempotencia },
+          },
+        );
         setFeedback({
           type: 'success',
           text: `${tipo === 'entrada' ? 'Entrada' : 'Saída'} de ${quantidade} unidade(s) de “${produtoSelecionado.nome}” registrada com sucesso.`,
@@ -99,6 +124,7 @@ export function Movimentacoes() {
       console.error('Erro ao registrar movimentação:', error);
       setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível registrar. Confira os dados e tente novamente.' });
     } finally {
+      emEnvioRef.current = false;
       setSalvando(false);
     }
   };

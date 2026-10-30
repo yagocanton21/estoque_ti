@@ -9,9 +9,11 @@ from schemas.lista_compras import (
     ListaComprasResponse,
     PaginatedListaComprasResponse,
     PdfOrcamentoResponse,
+    GerarPdfOrcamentoRequest,
 )
 from schemas.orcamento import OrcamentoCreate, OrcamentoUpdate, OrcamentoResponse
 from models.orcamento import Orcamento
+from services.gerador_pdf import gerar_pdf_orcamento_bytes, sanitizar_nome_arquivo
 from datetime import datetime, timezone
 import re
 
@@ -84,6 +86,58 @@ def atualizar_item_compra(id: int, item: ListaComprasUpdate, db: Session = Depen
     db.commit()
     db.refresh(db_item)
     return db_item
+
+
+@router.post("/{id}/gerar-pdf")
+def gerar_e_armazenar_pdf_orcamento(
+    id: int,
+    dados: GerarPdfOrcamentoRequest,
+    db: Session = Depends(get_db),
+):
+    db_item = (
+        db.query(ListaCompras)
+        .options(selectinload(ListaCompras.orcamentos))
+        .filter(ListaCompras.id == id)
+        .first()
+    )
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+
+    if not db_item.orcamentos:
+        raise HTTPException(
+            status_code=400,
+            detail="Adicione ao menos um orçamento antes de gerar o PDF",
+        )
+
+    nome_arquivo = sanitizar_nome_arquivo(db_item.nome)
+    atualizado_em = datetime.now(timezone.utc)
+
+    # Cálculo dos valores e rendering gerados exclusivamente no servidor
+    conteudo_pdf = gerar_pdf_orcamento_bytes(
+        item_nome=db_item.nome,
+        item_quantidade=db_item.quantidade,
+        orcamentos=db_item.orcamentos,
+        cidade=dados.cidade,
+        solicitante=dados.solicitante,
+        destinatario=dados.destinatario,
+        assinatura=dados.assinatura,
+        data_documento=atualizado_em,
+    )
+
+    db_item.orcamento_pdf = conteudo_pdf
+    db_item.orcamento_pdf_nome = nome_arquivo
+    db_item.orcamento_pdf_atualizado_em = atualizado_em
+    db.commit()
+
+    return Response(
+        content=conteudo_pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{nome_arquivo}"',
+            "X-PDF-Filename": nome_arquivo,
+            "Cache-Control": "private, no-store",
+        },
+    )
 
 
 @router.put("/{id}/pdf", response_model=PdfOrcamentoResponse)

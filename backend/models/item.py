@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, CheckConstraint
 from database import Base
 
 class Item(Base):
     __tablename__ = "itens"
+    __table_args__ = (
+        CheckConstraint("quantidade >= 0", name="chk_item_quantidade_nao_negativa"),
+    )
 
     id         = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nome       = Column(String, nullable=False)

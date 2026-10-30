@@ -1,9 +1,22 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Index, Integer, LargeBinary, String, text
 from sqlalchemy.orm import deferred, relationship
 from database import Base
 
 class ListaCompras(Base):
     __tablename__ = "lista_compras"
+    __table_args__ = (
+        Index(
+            "uq_lista_compras_item_ativo",
+            "item_id",
+            unique=True,
+            sqlite_where=text("status IN ('pendente', 'comprado') AND item_id IS NOT NULL"),
+            postgresql_where=text("status IN ('pendente', 'comprado') AND item_id IS NOT NULL"),
+        ),
+        CheckConstraint(
+            "status IN ('pendente', 'comprado', 'entregue', 'cancelado')",
+            name="chk_lista_compras_status_valido",
+        ),
+    )
 
     id         = Column(Integer, primary_key=True, index=True, autoincrement=True)
     item_id    = Column(Integer, ForeignKey("itens.id"), nullable=True)

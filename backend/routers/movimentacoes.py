@@ -1,7 +1,8 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import or_
+from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy import or_, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -33,6 +34,7 @@ def montar_resposta(movimentacao: Movimentacao, alerta: str | None = None):
         observacao=movimentacao.observacao,
         data=movimentacao.data,
         alerta=alerta,
+        chave_idempotencia=movimentacao.chave_idempotencia,
     )
 
 
@@ -75,7 +77,21 @@ def listar_historico_paginado(
 
 
 @router.post("/ajuste", response_model=MovimentacaoResponse, status_code=201)
-def ajustar_estoque(ajuste: AjusteEstoqueCreate, db: Session = Depends(get_db)):
+def ajustar_estoque(
+    ajuste: AjusteEstoqueCreate,
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+):
+    chave = (ajuste.chave_idempotencia or idempotency_key or "").strip() or None
+    if chave:
+        mov_existente = (
+            db.query(Movimentacao)
+            .filter(Movimentacao.chave_idempotencia == chave)
+            .first()
+        )
+        if mov_existente:
+            return montar_resposta(mov_existente)
+
     item = db.query(Item).filter(Item.id == ajuste.item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
@@ -86,7 +102,17 @@ def ajustar_estoque(ajuste: AjusteEstoqueCreate, db: Session = Depends(get_db)):
         )
 
     quantidade_anterior = item.quantidade
-    item.quantidade = ajuste.nova_quantidade
+    resultado = db.execute(
+        update(Item)
+        .where(Item.id == ajuste.item_id, Item.quantidade != ajuste.nova_quantidade)
+        .values(quantidade=ajuste.nova_quantidade)
+    )
+    if resultado.rowcount == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="A quantidade informada já é o saldo atual do produto",
+        )
+    db.refresh(item)
     movimentacao = Movimentacao(
         item_id=item.id,
         tipo="ajuste",
@@ -94,33 +120,82 @@ def ajustar_estoque(ajuste: AjusteEstoqueCreate, db: Session = Depends(get_db)):
         quantidade_anterior=quantidade_anterior,
         quantidade_resultante=ajuste.nova_quantidade,
         motivo=ajuste.motivo,
+        chave_idempotencia=chave,
     )
     db.add(movimentacao)
     alerta = checar_estoque_minimo_e_alertar(db, item)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        if chave:
+            mov_concorrente = (
+                db.query(Movimentacao)
+                .filter(Movimentacao.chave_idempotencia == chave)
+                .first()
+            )
+            if mov_concorrente:
+                return montar_resposta(mov_concorrente)
+        raise
+
     db.refresh(movimentacao)
     return montar_resposta(movimentacao, alerta)
 
 
 @router.post("/", response_model=MovimentacaoResponse, status_code=201)
-def registrar_movimentacao(mov: MovimentacaoCreate, db: Session = Depends(get_db)):
-    item = db.query(Item).filter(Item.id == mov.item_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Item não encontrado")
+def registrar_movimentacao(
+    mov: MovimentacaoCreate,
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+):
+    chave = (mov.chave_idempotencia or idempotency_key or "").strip() or None
 
-    if mov.tipo == "saida" and item.quantidade < mov.quantidade:
-        raise HTTPException(status_code=400, detail="Estoque insuficiente")
+    # Se a requisição enviou chave de idempotência, verifica se já foi processada anteriormente
+    if chave:
+        mov_existente = (
+            db.query(Movimentacao)
+            .filter(Movimentacao.chave_idempotencia == chave)
+            .first()
+        )
+        if mov_existente:
+            # Já processada! Retorna a resposta original sem alterar o saldo novamente
+            return montar_resposta(mov_existente)
 
-    quantidade_anterior = item.quantidade
-    if mov.tipo == "entrada":
-        item.quantidade += mov.quantidade
+    if mov.tipo == "saida":
+        # Atualização atômica condicional: só deduz se o estoque atual for suficiente
+        resultado = db.execute(
+            update(Item)
+            .where(Item.id == mov.item_id, Item.quantidade >= mov.quantidade)
+            .values(quantidade=Item.quantidade - mov.quantidade)
+        )
+        if resultado.rowcount == 0:
+            item_existe = db.query(Item).filter(Item.id == mov.item_id).first()
+            if not item_existe:
+                raise HTTPException(status_code=404, detail="Item não encontrado")
+            raise HTTPException(status_code=400, detail="Estoque insuficiente")
     else:
-        item.quantidade -= mov.quantidade
+        resultado = db.execute(
+            update(Item)
+            .where(Item.id == mov.item_id)
+            .values(quantidade=Item.quantidade + mov.quantidade)
+        )
+        if resultado.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Item não encontrado")
+
+    item = db.query(Item).filter(Item.id == mov.item_id).first()
+    quantidade_resultante = item.quantidade
+    if mov.tipo == "entrada":
+        quantidade_anterior = quantidade_resultante - mov.quantidade
+    else:
+        quantidade_anterior = quantidade_resultante + mov.quantidade
+
+    dados_mov = mov.model_dump()
+    dados_mov["chave_idempotencia"] = chave
 
     nova_movimentacao = Movimentacao(
-        **mov.model_dump(),
+        **dados_mov,
         quantidade_anterior=quantidade_anterior,
-        quantidade_resultante=item.quantidade,
+        quantidade_resultante=quantidade_resultante,
     )
     db.add(nova_movimentacao)
 
@@ -128,6 +203,21 @@ def registrar_movimentacao(mov: MovimentacaoCreate, db: Session = Depends(get_db
     if mov.tipo == "saida":
         alerta = checar_estoque_minimo_e_alertar(db, item)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Se duas requisições paralelas enviaram a mesma chave no exato mesmo milissegundo,
+        # uma comitou e a outra bateu na constraint única de chave_idempotencia.
+        db.rollback()
+        if chave:
+            mov_concorrente = (
+                db.query(Movimentacao)
+                .filter(Movimentacao.chave_idempotencia == chave)
+                .first()
+            )
+            if mov_concorrente:
+                return montar_resposta(mov_concorrente)
+        raise
+
     db.refresh(nova_movimentacao)
     return montar_resposta(nova_movimentacao, alerta)

@@ -6,7 +6,60 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or secrets.token_hex(32)
+import logging
+from pathlib import Path
+
+logger = logging.getLogger("auth")
+
+
+def _obter_jwt_secret_key() -> str:
+    # 1. Variável de ambiente explícita
+    env_secret = (os.getenv("JWT_SECRET_KEY") or "").strip()
+    if len(env_secret) >= 16:
+        return env_secret
+
+    # 2. Ambiente de teste
+    db_url = os.getenv("DATABASE_URL", "").lower()
+    if "test" in db_url or "pytest" in os.environ.get("_", "").lower() or "PYTEST_CURRENT_TEST" in os.environ:
+        return "test_jwt_secret_key_fixed_for_test_environment_1234567890"
+
+    # 3. Arquivo persistido para evitar deslogar usuários ou dessincronizar workers
+    candidatos = []
+    if os.getenv("JWT_SECRET_FILE"):
+        candidatos.append(Path(os.environ["JWT_SECRET_FILE"]))
+    candidatos.append(Path("/data/.jwt_secret"))
+    candidatos.append(Path(__file__).resolve().parents[2] / "data" / ".jwt_secret")
+    candidatos.append(Path(__file__).resolve().parents[1] / ".jwt_secret")
+
+    for arq in candidatos:
+        try:
+            if arq.is_file():
+                conteudo = arq.read_text(encoding="utf-8").strip()
+                if len(conteudo) >= 16:
+                    return conteudo
+        except Exception:
+            pass
+
+    # Se nenhum arquivo existir, cria no primeiro diretório acessível
+    nova_chave = secrets.token_hex(32)
+    for arq in candidatos:
+        try:
+            arq.parent.mkdir(parents=True, exist_ok=True)
+            arq.write_text(nova_chave, encoding="utf-8")
+            logger.warning(
+                "JWT_SECRET_KEY não foi definida nas variáveis de ambiente. "
+                "Uma chave segura foi gerada e persistida em '%s'. "
+                "Recomenda-se definir JWT_SECRET_KEY no .env para ambientes produtivos.",
+                arq
+            )
+            return nova_chave
+        except Exception:
+            continue
+
+    return nova_chave
+
+
+JWT_SECRET_KEY = _obter_jwt_secret_key()
 JWT_ALGORITHM = "HS256"
 
 # Duração dos tokens

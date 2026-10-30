@@ -16,5 +16,6 @@ class Movimentacao(Base):
     entregue_para = Column(String, nullable=True)
     observacao = Column(String, nullable=True)
     data       = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    chave_idempotencia = Column(String(100), nullable=True, unique=True, index=True)
 
     item = relationship("Item")

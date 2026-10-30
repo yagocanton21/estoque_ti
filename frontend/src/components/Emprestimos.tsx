@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
 import { formatarData } from '../utils/formatters';
@@ -24,6 +24,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
   const [quantidade, setQuantidade] = useState(1);
   const [busca, setBusca] = useState('');
   const [page, setPage] = useState(1);
+  const emEnvioRef = useRef(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,11 +88,14 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
 
   const registrarEmprestimo = async (evento: React.FormEvent) => {
     evento.preventDefault();
+    if (emEnvioRef.current || salvando) return;
+
     if (!itemNome.trim()) {
       setFeedback({ type: 'error', text: 'Digite o nome do produto ou equipamento.' });
       return;
     }
 
+    emEnvioRef.current = true;
     setSalvando(true);
     setFeedback({ type: 'loading', text: 'Registrando empréstimo...' });
     try {
@@ -110,13 +114,16 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
       console.error('Erro ao registrar empréstimo:', error);
       setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível registrar o empréstimo.' });
     } finally {
+      emEnvioRef.current = false;
       setSalvando(false);
     }
   };
 
   const devolverEmprestimo = async (id: number) => {
+    if (emEnvioRef.current || devolvendoId !== null) return;
     if (!confirm('Confirmar a devolução deste produto ou equipamento?')) return;
 
+    emEnvioRef.current = true;
     setDevolvendoId(id);
     setFeedback({ type: 'loading', text: 'Registrando devolução...' });
     try {
@@ -127,6 +134,7 @@ export function Emprestimos({ onNavigate }: EmprestimosProps) {
       console.error('Erro ao registrar devolução:', error);
       setFeedback({ type: 'error', text: error.response?.data?.detail || 'Não foi possível registrar a devolução.' });
     } finally {
+      emEnvioRef.current = false;
       setDevolvendoId(null);
     }
   };

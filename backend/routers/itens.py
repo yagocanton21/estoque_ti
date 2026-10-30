@@ -142,6 +142,8 @@ def obter_historico_item(id: int, db: Session = Depends(get_db)):
 def deletar_item(id: int, db: Session = Depends(get_db)):
     from models.movimentacao import Movimentacao
     from models.lista_compras import ListaCompras
+    from sqlalchemy.exc import IntegrityError
+
     db_item = db.query(Item).filter(Item.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
@@ -164,7 +166,14 @@ def deletar_item(id: int, db: Session = Depends(get_db)):
                 pass
 
     db.delete(db_item)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Este item possui movimentações registradas no histórico e não pode ser excluído para manter a auditoria.",
+        )
 
 @router.post("/{id}/foto", response_model=ItemResponse)
 def upload_foto_item(id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
@@ -179,17 +188,24 @@ def upload_foto_item(id: int, file: UploadFile = File(...), db: Session = Depend
     # Garante extensão jpg
     safe_filename = f"{id}_foto.jpg"
     filepath = os.path.join("/data/uploads", safe_filename)
+    temp_filepath = f"{filepath}.tmp.{os.getpid()}_{id}"
     
     try:
         image = Image.open(file.file)
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
         image.thumbnail((800, 800))
-        image.save(filepath, "JPEG", quality=85, optimize=True)
+        image.save(temp_filepath, "JPEG", quality=85, optimize=True)
+        os.replace(temp_filepath, filepath)
         
         db_item.foto_url = f"/uploads/{safe_filename}"
         db.commit()
         db.refresh(db_item)
         return db_item
     except Exception as e:
+        if os.path.exists(temp_filepath):
+            try:
+                os.remove(temp_filepath)
+            except Exception:
+                pass
         raise HTTPException(status_code=500, detail=f"Erro ao processar imagem: {str(e)}")

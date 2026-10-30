@@ -10,12 +10,14 @@ class MovimentacaoCreate(BaseModel):
     quantidade: int = Field(gt=0, description="Quantidade deve ser maior que zero")
     entregue_para: str | None = Field(default=None, max_length=150)
     observacao: str | None = Field(default=None, max_length=500)
+    chave_idempotencia: str | None = Field(default=None, max_length=100)
 
 
 class AjusteEstoqueCreate(BaseModel):
     item_id: int
     nova_quantidade: int = Field(ge=0)
     motivo: str = Field(min_length=3, max_length=300)
+    chave_idempotencia: str | None = Field(default=None, max_length=100)
 
     @field_validator("motivo")
     @classmethod
@@ -39,6 +41,7 @@ class MovimentacaoResponse(BaseModel):
     observacao: str | None = None
     data: datetime
     alerta: str | None = None
+    chave_idempotencia: str | None = None
 
 
 class MovimentacaoPaginadaResponse(BaseModel):

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from models.item import Item
 from models.lista_compras import ListaCompras
 
@@ -13,10 +14,16 @@ def checar_estoque_minimo_e_alertar(db: Session, item: Item) -> str | None:
         ListaCompras.status.in_(["pendente", "comprado"])
     ).first()
     
-    # 3. Se não tiver na lista, a gente adiciona
+    # 3. Se não tiver na lista, a gente adiciona protegido contra concorrência via savepoint
     if not item_na_lista:
-        novo_item_lista = ListaCompras(item_id=item.id, nome=item.nome, quantidade=1)
-        db.add(novo_item_lista)
+        try:
+            with db.begin_nested():
+                novo_item_lista = ListaCompras(item_id=item.id, nome=item.nome, quantidade=1)
+                db.add(novo_item_lista)
+                db.flush()
+        except IntegrityError:
+            # Outra requisição simultânea já inseriu este item na lista de compras
+            pass
     
     # 4. Retorna a mensagem de alerta
     return f"Estoque abaixo do mínimo! Atual: {item.quantidade}, Mínimo: {item.quantidade_minima}"

@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
+from sqlalchemy.exc import IntegrityError
 
 from database import get_db
 from models.equipamento import Equipamento, TipoEquipamento
@@ -51,7 +52,11 @@ def criar_tipo(dados: TipoEquipamentoCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Já existe um tipo chamado '{existe.nome}'.")
     tipo = TipoEquipamento(nome=nome)
     db.add(tipo)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Já existe um tipo chamado '{nome}'.")
     db.refresh(tipo)
     return {"id": tipo.id, "nome": tipo.nome, "total": 0}
 
@@ -70,7 +75,11 @@ def renomear_tipo(tipo_id: int, dados: TipoEquipamentoCreate, db: Session = Depe
     if existe:
         raise HTTPException(status_code=400, detail=f"Já existe um tipo chamado '{existe.nome}'.")
     tipo.nome = nome
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Já existe um tipo chamado '{nome}'.")
     db.refresh(tipo)
     total = db.query(Equipamento).filter(Equipamento.tipo_id == tipo.id, Equipamento.ativo.is_(True)).count()
     return {"id": tipo.id, "nome": tipo.nome, "total": total}
@@ -84,8 +93,15 @@ def excluir_tipo(tipo_id: int, db: Session = Depends(get_db)):
             status_code=409,
             detail="Este tipo possui equipamentos cadastrados. Exclua-os antes de remover o tipo.",
         )
-    db.delete(tipo)
-    db.commit()
+    try:
+        db.delete(tipo)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Este tipo possui equipamentos cadastrados. Exclua-os antes de remover o tipo.",
+        )
 
 
 @router.get("/", response_model=EquipamentoPaginadoResponse)

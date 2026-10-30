@@ -233,17 +233,20 @@ def apelidos_cartao(db: Session) -> dict:
 def salvar_apelido(db: Session, maquina: str, apelido: str, fonte: str = "", tarefa: str = "") -> None:
     agora = para_banco(agora_utc())
     if tarefa:
-        registro = db.get(BackupApelidoCartao, (fonte, maquina, tarefa))
-        if registro is None:
-            db.add(BackupApelidoCartao(fonte=fonte, maquina=maquina, tarefa=tarefa, apelido=apelido, atualizado_em=agora))
-        else:
-            registro.apelido, registro.atualizado_em = apelido, agora
+        stmt = sqlite_insert(BackupApelidoCartao).values(
+            fonte=fonte, maquina=maquina, tarefa=tarefa, apelido=apelido, atualizado_em=agora
+        ).on_conflict_do_update(
+            index_elements=["fonte", "maquina", "tarefa"],
+            set_={"apelido": apelido, "atualizado_em": agora},
+        )
     else:
-        registro = db.get(BackupApelidoMaquina, maquina)
-        if registro is None:
-            db.add(BackupApelidoMaquina(maquina=maquina, apelido=apelido, atualizado_em=agora))
-        else:
-            registro.apelido, registro.atualizado_em = apelido, agora
+        stmt = sqlite_insert(BackupApelidoMaquina).values(
+            maquina=maquina, apelido=apelido, atualizado_em=agora
+        ).on_conflict_do_update(
+            index_elements=["maquina"],
+            set_={"apelido": apelido, "atualizado_em": agora},
+        )
+    db.execute(stmt)
     db.commit()
 
 
@@ -341,13 +344,27 @@ def ingerir_cobian(db: Session, payload: dict, ip_origem: str, payload_id: int) 
                         f"'{info_antiga.get('cobian_dir')}' e em '{hb.get('cobian_dir')}'). "
                         f"Reinstale o agente no segundo servidor com o nome correto do computador.")
             hb = {**hb, "problem": conflito, "conflict": True}
+        agente.fonte = "cobian"
+        agente.ultimo_contato = para_banco(agora)
+        agente.versao = str(payload.get("agent_version") or "")
+        agente.info = json.dumps(hb, ensure_ascii=False)
     else:
-        agente = BackupAgente(maquina=maquina)
-        db.add(agente)
-    agente.fonte = "cobian"
-    agente.ultimo_contato = para_banco(agora)
-    agente.versao = str(payload.get("agent_version") or "")
-    agente.info = json.dumps(hb, ensure_ascii=False)
+        stmt_agente = sqlite_insert(BackupAgente).values(
+            maquina=maquina,
+            fonte="cobian",
+            ultimo_contato=para_banco(agora),
+            versao=str(payload.get("agent_version") or ""),
+            info=json.dumps(hb, ensure_ascii=False),
+        ).on_conflict_do_update(
+            index_elements=["maquina"],
+            set_={
+                "fonte": "cobian",
+                "ultimo_contato": para_banco(agora),
+                "versao": str(payload.get("agent_version") or ""),
+                "info": json.dumps(hb, ensure_ascii=False),
+            },
+        )
+        db.execute(stmt_agente)
 
     db.query(BackupEmAndamento).filter(BackupEmAndamento.fonte == "cobian",
                                        BackupEmAndamento.maquina == maquina).delete(synchronize_session=False)

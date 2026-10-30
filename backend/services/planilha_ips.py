@@ -168,6 +168,8 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
     atualizados = 0
     ignorados = 0
 
+    maquinas_no_lote: Dict[str, Maquina] = {}
+
     for linha in linhas_dados:
         nome_maquina = (linha.get("nome_maquina") or "").strip()
         if not nome_maquina:
@@ -234,14 +236,19 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
             detalhes.append(f"Coletado via rede em: {data_coleta}")
             obs = " · ".join(detalhes)
 
-        existente = (
-            db.query(Maquina)
-            .filter(
-                func.lower(Maquina.nome_maquina) == nome_maquina.lower(),
-                Maquina.ativo.is_(True),
+        chave_maquina = nome_maquina.lower()
+        existente = maquinas_no_lote.get(chave_maquina)
+        if not existente:
+            existente = (
+                db.query(Maquina)
+                .filter(
+                    func.lower(Maquina.nome_maquina) == chave_maquina,
+                    Maquina.ativo.is_(True),
+                )
+                .first()
             )
-            .first()
-        )
+            if existente:
+                maquinas_no_lote[chave_maquina] = existente
 
         if existente:
             if ip:
@@ -275,9 +282,14 @@ def processar_linhas_importadas(linhas_dados: List[Dict[str, str]], db: Session)
                 ativo=True,
             )
             db.add(nova)
+            maquinas_no_lote[chave_maquina] = nova
             criados += 1
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
 
     return {
         "mensagem": "Importação concluída com sucesso.",

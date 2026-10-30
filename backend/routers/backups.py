@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.backup import BackupExecucao, BackupPayload
 from services import backups
+from services.auth import obter_usuario_logado
 from services.backup_formatos import agora_utc, do_banco, iso, limpar_apelido, normalizar_maquina, para_banco
 
 router = APIRouter(prefix="/backups", tags=["Backups"])
@@ -149,12 +150,12 @@ def payloads_crus(
 # ---------------------------------------------------------------------------
 
 @router.get("/painel")
-def painel(db: Session = Depends(get_db)):
+def painel(db: Session = Depends(get_db), usuario: str = Depends(obter_usuario_logado)):
     return backups.montar_painel(db)
 
 
 @router.get("/resumo")
-def resumo(db: Session = Depends(get_db)):
+def resumo(db: Session = Depends(get_db), usuario: str = Depends(obter_usuario_logado)):
     return backups.montar_resumo(db)
 
 
@@ -165,6 +166,7 @@ def historico(
     maquina: Optional[str] = Query(None),
     tarefa: Optional[str] = Query(None),
     db: Session = Depends(get_db),
+    usuario: str = Depends(obter_usuario_logado),
 ):
     E = BackupExecucao
     quando = func.coalesce(E.fim, E.recebido_em)
@@ -186,7 +188,7 @@ def historico(
 
 
 @router.post("/apelido")
-def definir_apelido(dados: ApelidoRequest, db: Session = Depends(get_db)):
+def definir_apelido(dados: ApelidoRequest, db: Session = Depends(get_db), usuario: str = Depends(obter_usuario_logado)):
     maquina = normalizar_maquina(dados.maquina)[:100] if dados.maquina.strip() else ""
     if not maquina:
         raise HTTPException(status_code=400, detail="Informe a máquina.")
@@ -200,11 +202,11 @@ def definir_apelido(dados: ApelidoRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/alertas/reconhecer")
-def reconhecer_alertas(dados: ReconhecerRequest, db: Session = Depends(get_db)):
+def reconhecer_alertas(dados: ReconhecerRequest, db: Session = Depends(get_db), usuario: str = Depends(obter_usuario_logado)):
     return {"reconhecidos": backups.reconhecer_alertas(db, dados.ids)}
 
 
 @router.post("/verificar")
-def verificar_agora(db: Session = Depends(get_db)):
+def verificar_agora(db: Session = Depends(get_db), usuario: str = Depends(obter_usuario_logado)):
     novas = backups.verificar(db)
     return {"criados": len(novas), "alertas": novas}
