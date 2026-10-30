@@ -9,7 +9,7 @@ class ListaComprasBase(BaseModel):
     nome: str = Field(..., min_length=2, max_length=200, description="Nome do item para comprar")
     quantidade: int = Field(default=1, gt=0, description="Quantidade deve ser maior que zero")
     status: StatusCompra = Field(default="pendente", description="Status da compra: pendente, comprado, entregue, cancelado")
-    link: Optional[str] = Field(default=None, max_length=500, description="Link do produto")
+    link: Optional[str] = Field(default=None, max_length=4000, description="Link do produto")
 
     @field_validator("nome")
     @classmethod
@@ -26,7 +26,7 @@ class ListaComprasUpdate(BaseModel):
     nome: Optional[str] = Field(default=None, max_length=200)
     quantidade: Optional[int] = Field(default=None, gt=0)
     status: Optional[StatusCompra] = None
-    link: Optional[str] = Field(default=None, max_length=500)
+    link: Optional[str] = Field(default=None, max_length=4000)
     data_compra: Optional[datetime] = None
 
     @field_validator("nome")
