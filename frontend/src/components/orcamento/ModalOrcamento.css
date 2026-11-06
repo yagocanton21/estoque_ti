@@ -5,6 +5,36 @@
   width: min(900px, 100%);
 }
 
+.budget-modal-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  font-size: 0.88rem;
+}
+
+.budget-modal-error-close {
+  background: transparent;
+  border: none;
+  color: #fca5a5;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.budget-modal-error-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 .budget-section {
   margin-top: 1rem;
   padding-top: 1rem;

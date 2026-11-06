@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { converterMoeda } from './types';
+import { useEffect, useState } from 'react';
+import { converterMoeda, normalizarUrl } from './types';
 
 interface FormCotacaoProps {
   salvando: boolean;
+  abertoInicial?: boolean;
   onAdicionar: (dados: {
     fornecedor: string;
     preco_unitario: number;
@@ -12,18 +13,25 @@ interface FormCotacaoProps {
   onError: (msg: string) => void;
 }
 
-export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps) {
+export function FormCotacao({ salvando, abertoInicial = false, onAdicionar, onError }: FormCotacaoProps) {
   const [fornecedor, setFornecedor] = useState('');
   const [precoUnitario, setPrecoUnitario] = useState('');
   const [frete, setFrete] = useState('');
   const [link, setLink] = useState('');
+  const [isOpen, setIsOpen] = useState(abertoInicial);
+
+  useEffect(() => {
+    if (abertoInicial) {
+      setIsOpen(true);
+    }
+  }, [abertoInicial]);
 
   const handleSubmit = async (evento: React.FormEvent) => {
     evento.preventDefault();
     const preco = converterMoeda(precoUnitario);
     const valorFrete = frete ? converterMoeda(frete) : 0;
     if (!Number.isFinite(preco) || preco <= 0) {
-      onError('Informe um preço unitário válido e maior que zero.');
+      onError('Informe um preço unitário válido e maior que zero (ex: 150,00 ou R$ 150,00).');
       return;
     }
     if (!Number.isFinite(valorFrete) || valorFrete < 0) {
@@ -31,11 +39,13 @@ export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps
       return;
     }
 
+    const linkNormalizado = normalizarUrl(link);
+
     await onAdicionar({
       fornecedor: fornecedor.trim(),
       preco_unitario: preco,
       frete: valorFrete,
-      link: link.trim() || null,
+      link: linkNormalizado,
     });
 
     setFornecedor('');
@@ -45,7 +55,11 @@ export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps
   };
 
   return (
-    <details className="budget-section budget-collapsible">
+    <details
+      className="budget-section budget-collapsible"
+      open={isOpen}
+      onToggle={(e) => setIsOpen((e.currentTarget as HTMLDetailsElement).open)}
+    >
       <summary>
         <span>
           <strong>Adicionar nova cotação</strong>
@@ -61,7 +75,7 @@ export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps
               value={fornecedor}
               onChange={(evento) => setFornecedor(evento.target.value)}
               required
-              placeholder="Ex: Loja de Informática"
+              placeholder="Ex: Pichau, Terabyte, KaBuM!, Mercado Livre"
             />
           </label>
           <label className="form-field">
@@ -71,7 +85,7 @@ export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps
               onChange={(evento) => setPrecoUnitario(evento.target.value)}
               required
               inputMode="decimal"
-              placeholder="118,00"
+              placeholder="118,00 ou R$ 118,00"
             />
           </label>
           <label className="form-field">
@@ -84,12 +98,12 @@ export function FormCotacao({ salvando, onAdicionar, onError }: FormCotacaoProps
             />
           </label>
           <label className="form-field form-field-wide">
-            <span>Link da loja</span>
+            <span>Link da loja (opcional)</span>
             <input
-              type="url"
+              type="text"
               value={link}
               onChange={(evento) => setLink(evento.target.value)}
-              placeholder="https://..."
+              placeholder="Ex: www.pichau.com.br/... ou https://..."
             />
           </label>
           <button type="submit" className="btn btn-primary form-field-wide" disabled={salvando}>

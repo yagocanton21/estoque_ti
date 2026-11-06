@@ -14,11 +14,23 @@ export interface ItemParaOrcamento {
 }
 
 export function converterMoeda(valor: string): number {
-  const texto = valor.trim().replace(/\s/g, '');
+  if (!valor) return NaN;
+  const texto = valor.replace(/r\$/gi, '').trim().replace(/\s/g, '');
+  if (!texto) return NaN;
   const normalizado = texto.includes(',')
     ? texto.replace(/\./g, '').replace(',', '.')
     : texto;
   return Number(normalizado);
+}
+
+export function normalizarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const limpo = url.trim();
+  if (!limpo) return null;
+  if (/^https?:\/\//i.test(limpo)) {
+    return limpo;
+  }
+  return `https://${limpo}`;
 }
 
 export { formatarMoeda } from '../../utils/formatters';

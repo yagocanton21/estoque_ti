@@ -29,12 +29,19 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
   const [salvando, setSalvando] = useState(false);
   const [exportandoPdf, setExportandoPdf] = useState(false);
   const [processandoId, setProcessandoId] = useState<number | null>(null);
+  const [erroLocal, setErroLocal] = useState<string | null>(null);
+
+  const notificarErro = (msg: string) => {
+    setErroLocal(msg);
+    onError(msg);
+  };
 
   const atualizarOrcamentos = async () => {
     try {
       setOrcamentos(await buscarOrcamentos(item.id));
+      setErroLocal(null);
     } catch (error: any) {
-      onError(error.response?.data?.detail || 'Erro ao carregar orçamentos.');
+      notificarErro(error.response?.data?.detail || 'Erro ao carregar orçamentos.');
     }
   };
 
@@ -42,10 +49,13 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
     let ativo = true;
     buscarOrcamentos(item.id)
       .then((dados) => {
-        if (ativo) setOrcamentos(dados);
+        if (ativo) {
+          setOrcamentos(dados);
+          setErroLocal(null);
+        }
       })
       .catch((error: any) => {
-        if (ativo) onError(error.response?.data?.detail || 'Erro ao carregar orçamentos.');
+        if (ativo) notificarErro(error.response?.data?.detail || 'Erro ao carregar orçamentos.');
       })
       .finally(() => {
         if (ativo) setCarregando(false);
@@ -63,12 +73,13 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
     link: string | null;
   }) => {
     setSalvando(true);
+    setErroLocal(null);
     try {
       await axios.post(`/api/lista-compras/${item.id}/orcamentos`, dados);
       onSuccess(`Orçamento de ${dados.fornecedor} adicionado.`);
       await atualizarOrcamentos();
     } catch (error: any) {
-      onError(error.response?.data?.detail || 'Erro ao adicionar orçamento.');
+      notificarErro(error.response?.data?.detail || 'Erro ao adicionar orçamento.');
     } finally {
       setSalvando(false);
     }
@@ -77,12 +88,13 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
   const deletarOrcamento = async (id: number) => {
     if (!window.confirm('Deseja excluir este orçamento?')) return;
     setProcessandoId(id);
+    setErroLocal(null);
     try {
       await axios.delete(`/api/lista-compras/orcamentos/${id}`);
       onSuccess('Orçamento excluído.');
       await atualizarOrcamentos();
     } catch (error: any) {
-      onError(error.response?.data?.detail || 'Erro ao excluir orçamento.');
+      notificarErro(error.response?.data?.detail || 'Erro ao excluir orçamento.');
     } finally {
       setProcessandoId(null);
     }
@@ -90,12 +102,13 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
 
   const selecionarOrcamento = async (id: number) => {
     setProcessandoId(id);
+    setErroLocal(null);
     try {
       await axios.put(`/api/lista-compras/orcamentos/${id}`, { selecionado: true });
       onSuccess('Orçamento vencedor atualizado.');
       await atualizarOrcamentos();
     } catch (error: any) {
-      onError(error.response?.data?.detail || 'Erro ao selecionar orçamento.');
+      notificarErro(error.response?.data?.detail || 'Erro ao selecionar orçamento.');
     } finally {
       setProcessandoId(null);
     }
@@ -103,11 +116,12 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
 
   const exportarPDF = async () => {
     if (!cidade.trim() || !solicitante.trim() || !destinatario.trim() || !assinatura.trim()) {
-      onError('Preencha todos os dados do documento antes de exportar.');
+      notificarErro('Preencha todos os dados do documento antes de exportar.');
       return;
     }
 
     setExportandoPdf(true);
+    setErroLocal(null);
     try {
       await gerarESalvarPdfOrcamento({
         item,
@@ -120,7 +134,7 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
       onSuccess('PDF salvo no histórico e baixado com sucesso.');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
-      onError('Não foi possível gerar o PDF. Tente novamente.');
+      notificarErro('Não foi possível gerar o PDF. Tente novamente.');
     } finally {
       setExportandoPdf(false);
     }
@@ -145,6 +159,20 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
           </button>
         </div>
 
+        {erroLocal && (
+          <div className="budget-modal-error" role="alert">
+            <span>{erroLocal}</span>
+            <button
+              type="button"
+              className="budget-modal-error-close"
+              onClick={() => setErroLocal(null)}
+              aria-label="Dispensar aviso"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {carregando ? (
           <p className="inventory-empty">Carregando orçamentos...</p>
         ) : orcamentos.length === 0 ? (
@@ -161,8 +189,9 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
 
         <FormCotacao
           salvando={salvando}
+          abertoInicial={orcamentos.length === 0}
           onAdicionar={handleAdicionarCotacao}
-          onError={onError}
+          onError={notificarErro}
         />
 
         <FormDadosPdf
