@@ -288,42 +288,47 @@ def gerar_pdf_orcamento_bytes(
     story.append(tabela_cotacoes)
     story.append(Spacer(1, 16))
 
-    # 4. Assinatura e Bloco de Aprovação (mantidos juntos para não quebrar de forma desorganizada)
-    bloco_final = []
-    bloco_final.append(Paragraph(
+    # 4. Assinatura do Solicitante
+    story.append(Paragraph(
         f"<font size='8.5' color='#475569'>Atenciosamente,</font><br/>"
         f"<font size='9.5' color='#1e293b'><b>{assinatura.strip()}</b></font>",
         normal_style
     ))
-    bloco_final.append(Spacer(1, 14))
 
+    # 5. Espaçamento dinâmico para posicionar o bloco de aprovação no terço inferior da página sem quebrar
+    qtd_orc = len(orcamentos)
+    espaco_dinamico = max(24, min(230, 350 - (qtd_orc * 32)))
+    story.append(Spacer(1, espaco_dinamico))
+
+    # 6. Bloco de Aprovação do Responsável
     aprovacao_content = [
         [
             Paragraph("<font size='8' color='#14378c'><b>APROVAÇÃO DO RESPONSÁVEL</b></font>", normal_style),
         ],
         [
-            Paragraph("<font size='7.5' color='#64748b'>Parecer / observações:</font><br/><br/>"
-                      "__________________________________________________________________________________________", normal_style),
+            Paragraph("<font size='7.5' color='#64748b'>Parecer / observações:</font>", normal_style),
+        ],
+        [
+            Paragraph("", normal_style),
         ],
         [
             Paragraph(
-                "<font size='7.5' color='#64748b'>Visto / assinatura: ___________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Data: ____/____/________</font>",
+                "<font size='7.5' color='#64748b'>Visto / assinatura: ___________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Data: ____/____/________</font>",
                 normal_style
             ),
         ],
     ]
-    tabela_aprovacao = Table(aprovacao_content, colWidths=[largura_util])
+    tabela_aprovacao = Table(aprovacao_content, colWidths=[largura_util], rowHeights=[18, 14, 28, 22])
     tabela_aprovacao.setStyle(TableStyle([
         ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#94a3b8")),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LINEBELOW", (0, 2), (-1, 2), 0.5, colors.HexColor("#cbd5e1")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("LEFTPADDING", (0, 0), (-1, -1), 10),
         ("RIGHTPADDING", (0, 0), (-1, -1), 10),
         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#ffffff")),
     ]))
-    bloco_final.append(tabela_aprovacao)
-
-    story.append(KeepTogether(bloco_final))
+    story.append(KeepTogether([tabela_aprovacao]))
 
     # Compilação do PDF
     doc.build(story, canvasmaker=NumberedCanvas)
