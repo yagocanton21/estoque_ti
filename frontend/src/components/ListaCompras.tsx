@@ -6,6 +6,8 @@ import type { ListaComprasItem } from './lista-compras/types';
 import { CardItemCompra } from './lista-compras/CardItemCompra';
 import { FormAdicionarCompra } from './lista-compras/FormAdicionarCompra';
 import { ModalEdicaoCompra } from './lista-compras/ModalEdicaoCompra';
+import { HistoricoPrecosItem } from './orcamento/HistoricoPrecosItem';
+import { formatarMoeda } from '../utils/formatters';
 import './lista-compras/ListaCompras.css';
 
 export type { ListaComprasItem };
@@ -14,10 +16,23 @@ interface ListaComprasProps {
   onNavigate: (tab: string) => void;
 }
 
+interface MetricasCompras {
+  total_pendentes: number;
+  total_comprados: number;
+  total_entregues: number;
+  valor_total_estimado: number;
+}
+
 export function ListaCompras({ onNavigate }: ListaComprasProps) {
+  const [abaPrincipal, setAbaPrincipal] = useState<'itens' | 'comparador'>('itens');
   const [lista, setLista] = useState<ListaComprasItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [metricas, setMetricas] = useState<MetricasCompras | null>(null);
+
+  // Filtros na lista de compras
+  const [buscaLista, setBuscaLista] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'pendente' | 'comprado'>('todos');
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -31,6 +46,15 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
   const [itemEmEdicao, setItemEmEdicao] = useState<ListaComprasItem | null>(null);
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
 
+  const carregarMetricas = useCallback(async () => {
+    try {
+      const res = await axios.get<MetricasCompras>('/api/lista-compras/metricas');
+      setMetricas(res.data);
+    } catch (err) {
+      console.warn('Erro ao carregar métricas da lista de compras:', err);
+    }
+  }, []);
+
   const carregarLista = useCallback(async (pagina: number = page) => {
     setCarregando(true);
     try {
@@ -38,13 +62,14 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
       const res = await axios.get(`/api/lista-compras/pendentes/paginado?skip=${skip}&limit=${itemsPerPage}`);
       setLista(res.data.items);
       setTotal(res.data.total);
+      carregarMetricas();
     } catch (error) {
       console.error('Erro ao buscar lista de compras:', error);
       setFeedback({ type: 'error', text: 'Não foi possível carregar a lista de compras.' });
     } finally {
       setCarregando(false);
     }
-  }, [page, itemsPerPage]);
+  }, [page, itemsPerPage, carregarMetricas]);
 
   useEffect(() => {
     let ativo = true;
@@ -65,10 +90,12 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
         if (ativo) setCarregando(false);
       });
 
+    carregarMetricas();
+
     return () => {
       ativo = false;
     };
-  }, [page, itemsPerPage]);
+  }, [page, itemsPerPage, carregarMetricas]);
 
   const avancarStatus = async (item: ListaComprasItem) => {
     let finalItemId = item.item_id;
@@ -166,15 +193,31 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
     }
   };
 
+  // Filtragem dos itens exibidos
+  const itensFiltrados = lista.filter((item) => {
+    if (filtroStatus !== 'todos' && item.status !== filtroStatus) {
+      return false;
+    }
+    if (buscaLista.trim()) {
+      const termo = buscaLista.toLowerCase();
+      const bateNome = item.nome.toLowerCase().includes(termo);
+      const bateFornecedor = item.orcamentos?.some((o) =>
+        o.fornecedor.toLowerCase().includes(termo)
+      );
+      return bateNome || bateFornecedor;
+    }
+    return true;
+  });
+
   const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
     <>
       <div className="page-action-header">
         <div>
-          <h1>Lista de Compras</h1>
+          <h1>Lista de Compras & Orçamentos</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-            Gerencie pedidos de compra, acompanhe orçamentos e dê entrada rápida no estoque.
+            Acompanhe pedidos, compare preços históricos e gerencie cotações de forma inteligente.
           </p>
         </div>
         <button
@@ -186,87 +229,233 @@ export function ListaCompras({ onNavigate }: ListaComprasProps) {
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 14 14"></polyline>
           </svg>
-          Ver histórico de compras
+          Histórico de compras entregues
         </button>
       </div>
 
       <FeedbackMessage feedback={feedback} onDismiss={() => setFeedback(null)} />
 
-      <FormAdicionarCompra
-        onAdicionado={(nome) => {
-          carregarLista();
-          setFeedback({ type: 'success', text: `Produto “${nome}” adicionado à lista de compras.` });
-        }}
-        onFeedback={(tipo, texto) => setFeedback({ type: tipo, text: texto })}
-      />
-
-      <div className="card section-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
-          <div>
-            <h2 style={{ margin: 0 }}>Produtos Pendentes para Compra</h2>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              {total === 1 ? '1 item aguardando' : `${total} itens aguardando`}
-            </span>
-          </div>
-        </div>
-
-        <div className="responsive-list">
-          {carregando ? (
-            <p style={{ color: 'var(--text-muted)' }}>Carregando lista de compras...</p>
-          ) : lista.length === 0 ? (
-            <div className="purchase-empty-state">
-              <div className="purchase-empty-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
-              </div>
-              <h3>Nenhum produto pendente</h3>
-              <p>Você não possui itens pendentes no momento. Adicione um novo produto pelo formulário acima.</p>
+      {/* Cards de Métricas no Topo */}
+      {metricas && (
+        <div className="purchase-metrics-grid">
+          <div className="purchase-metric-card">
+            <div className="metric-icon-wrap pending">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
             </div>
-          ) : (
-            lista.map((item) => (
-              <CardItemCompra
-                key={item.id}
-                item={item}
-                processando={processandoId === item.id}
-                onAvancarStatus={avancarStatus}
-                onAbrirOrcamentos={setItemParaOrcamento}
-                onEditar={setItemEmEdicao}
-                onExcluir={excluirItem}
-                onFeedback={(tipo, texto) => setFeedback({ type: tipo, text: texto })}
-              />
-            ))
-          )}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="inventory-pagination">
-            <button
-              className="btn btn-outline"
-              disabled={page === 1}
-              onClick={() => { setCarregando(true); setPage(page - 1); }}
-            >
-              Anterior
-            </button>
-            <span>Página <strong>{page}</strong> de <strong>{totalPages}</strong></span>
-            <button
-              className="btn btn-outline"
-              disabled={page === totalPages}
-              onClick={() => { setCarregando(true); setPage(page + 1); }}
-            >
-              Próxima
-            </button>
+            <div className="metric-content">
+              <span className="metric-label">Pendentes para Cotar / Comprar</span>
+              <strong className="metric-number">{metricas.total_pendentes}</strong>
+            </div>
           </div>
-        )}
+
+          <div className="purchase-metric-card">
+            <div className="metric-icon-wrap bought">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+            </div>
+            <div className="metric-content">
+              <span className="metric-label">Aguardando Entrega</span>
+              <strong className="metric-number">{metricas.total_comprados}</strong>
+            </div>
+          </div>
+
+          <div className="purchase-metric-card">
+            <div className="metric-icon-wrap estimated">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div className="metric-content">
+              <span className="metric-label">Valor Total Estimado</span>
+              <strong className="metric-number">{formatarMoeda(metricas.valor_total_estimado)}</strong>
+            </div>
+          </div>
+
+          <div className="purchase-metric-card">
+            <div className="metric-icon-wrap delivered">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div className="metric-content">
+              <span className="metric-label">Total Já Entregues</span>
+              <strong className="metric-number">{metricas.total_entregues}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Abas de Navegação */}
+      <div className="purchase-nav-tabs">
+        <button
+          type="button"
+          className={`purchase-nav-tab ${abaPrincipal === 'itens' ? 'active' : ''}`}
+          onClick={() => setAbaPrincipal('itens')}
+        >
+          <span>Itens para Compra</span>
+          {total > 0 && <span className="purchase-tab-badge">{total}</span>}
+        </button>
+
+        <button
+          type="button"
+          className={`purchase-nav-tab ${abaPrincipal === 'comparador' ? 'active' : ''}`}
+          onClick={() => setAbaPrincipal('comparador')}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+          </svg>
+          <span>Histórico & Comparador de Preços</span>
+        </button>
       </div>
+
+      {abaPrincipal === 'itens' ? (
+        <>
+          <FormAdicionarCompra
+            onAdicionado={(nome) => {
+              carregarLista();
+              setFeedback({ type: 'success', text: `Produto “${nome}” adicionado à lista de compras.` });
+            }}
+            onFeedback={(tipo, texto) => setFeedback({ type: tipo, text: texto })}
+          />
+
+          <div className="card section-card">
+            {/* Toolbar com Pesquisa e Filtros */}
+            <div className="purchase-toolbar">
+              <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 300px' }}>
+                <input
+                  type="text"
+                  value={buscaLista}
+                  onChange={(e) => setBuscaLista(e.target.value)}
+                  placeholder="Filtrar por produto ou fornecedor..."
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--glass-border)',
+                    background: 'rgba(0,0,0,0.2)',
+                    color: 'white',
+                    fontSize: '0.88rem',
+                  }}
+                />
+              </div>
+
+              <div className="purchase-filter-group">
+                <button
+                  type="button"
+                  className={`status-filter-pill ${filtroStatus === 'todos' ? 'active' : ''}`}
+                  onClick={() => setFiltroStatus('todos')}
+                >
+                  Todos ({total})
+                </button>
+                <button
+                  type="button"
+                  className={`status-filter-pill ${filtroStatus === 'pendente' ? 'active' : ''}`}
+                  onClick={() => setFiltroStatus('pendente')}
+                >
+                  Pendentes ({metricas?.total_pendentes ?? 0})
+                </button>
+                <button
+                  type="button"
+                  className={`status-filter-pill ${filtroStatus === 'comprado' ? 'active' : ''}`}
+                  onClick={() => setFiltroStatus('comprado')}
+                >
+                  A caminho ({metricas?.total_comprados ?? 0})
+                </button>
+              </div>
+            </div>
+
+            <div className="responsive-list">
+              {carregando ? (
+                <p style={{ color: 'var(--text-muted)' }}>Carregando lista de compras...</p>
+              ) : itensFiltrados.length === 0 ? (
+                <div className="purchase-empty-state">
+                  <div className="purchase-empty-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="21" r="1"></circle>
+                      <circle cx="20" cy="21" r="1"></circle>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                  </div>
+                  <h3>
+                    {buscaLista.trim() || filtroStatus !== 'todos'
+                      ? 'Nenhum item encontrado para os filtros selecionados'
+                      : 'Nenhum produto pendente'}
+                  </h3>
+                  <p>
+                    {buscaLista.trim() || filtroStatus !== 'todos'
+                      ? 'Tente ajustar os termos da pesquisa ou alterar o filtro de status.'
+                      : 'Você não possui itens pendentes no momento. Adicione um novo produto pelo formulário acima.'}
+                  </p>
+                </div>
+              ) : (
+                itensFiltrados.map((item) => (
+                  <CardItemCompra
+                    key={item.id}
+                    item={item}
+                    processando={processandoId === item.id}
+                    onAvancarStatus={avancarStatus}
+                    onAbrirOrcamentos={setItemParaOrcamento}
+                    onEditar={setItemEmEdicao}
+                    onExcluir={excluirItem}
+                    onFeedback={(tipo, texto) => setFeedback({ type: tipo, text: texto })}
+                  />
+                ))
+              )}
+            </div>
+
+            {totalPages > 1 && !buscaLista && filtroStatus === 'todos' && (
+              <div className="inventory-pagination">
+                <button
+                  className="btn btn-outline"
+                  disabled={page === 1}
+                  onClick={() => { setCarregando(true); setPage(page - 1); }}
+                >
+                  Anterior
+                </button>
+                <span>
+                  Página {page} de {totalPages}
+                </span>
+                <button
+                  className="btn btn-outline"
+                  disabled={page === totalPages}
+                  onClick={() => { setCarregando(true); setPage(page + 1); }}
+                >
+                  Próxima
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="card section-card">
+          <div style={{ marginBottom: '1.25rem' }}>
+            <h2 style={{ margin: 0 }}>Histórico de Preços & Cotações</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.25rem' }}>
+              Consulte e compare preços praticados em compras anteriores para qualquer item, com ou sem cadastro no estoque.
+            </p>
+          </div>
+          <HistoricoPrecosItem mostrarBusca={true} compacto={false} />
+        </div>
+      )}
 
       {itemParaOrcamento && (
         <ModalOrcamento
           item={itemParaOrcamento}
           onClose={() => setItemParaOrcamento(null)}
-          onSuccess={(msg) => setFeedback({ type: 'success', text: msg })}
+          onSuccess={(msg) => {
+            setFeedback({ type: 'success', text: msg });
+            carregarLista();
+          }}
           onError={(msg) => setFeedback({ type: 'error', text: msg })}
         />
       )}

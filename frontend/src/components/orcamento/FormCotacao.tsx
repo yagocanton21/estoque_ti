@@ -4,6 +4,7 @@ import { converterMoeda, normalizarUrl } from './types';
 interface FormCotacaoProps {
   salvando: boolean;
   abertoInicial?: boolean;
+  valoresIniciais?: { fornecedor: string; link: string | null } | null;
   onAdicionar: (dados: {
     fornecedor: string;
     preco_unitario: number;
@@ -13,7 +14,13 @@ interface FormCotacaoProps {
   onError: (msg: string) => void;
 }
 
-export function FormCotacao({ salvando, abertoInicial = false, onAdicionar, onError }: FormCotacaoProps) {
+export function FormCotacao({
+  salvando,
+  abertoInicial = false,
+  valoresIniciais = null,
+  onAdicionar,
+  onError,
+}: FormCotacaoProps) {
   const [fornecedor, setFornecedor] = useState('');
   const [precoUnitario, setPrecoUnitario] = useState('');
   const [frete, setFrete] = useState('');
@@ -25,6 +32,14 @@ export function FormCotacao({ salvando, abertoInicial = false, onAdicionar, onEr
       setIsOpen(true);
     }
   }, [abertoInicial]);
+
+  useEffect(() => {
+    if (valoresIniciais) {
+      setFornecedor(valoresIniciais.fornecedor || '');
+      setLink(valoresIniciais.link || '');
+      setIsOpen(true);
+    }
+  }, [valoresIniciais]);
 
   const handleSubmit = async (evento: React.FormEvent) => {
     evento.preventDefault();
@@ -103,12 +118,14 @@ export function FormCotacao({ salvando, abertoInicial = false, onAdicionar, onEr
               type="text"
               value={link}
               onChange={(evento) => setLink(evento.target.value)}
-              placeholder="Ex: www.pichau.com.br/... ou https://..."
+              placeholder="https://exemplo.com.br/produto"
             />
           </label>
-          <button type="submit" className="btn btn-primary form-field-wide" disabled={salvando}>
-            {salvando ? 'Salvando...' : 'Adicionar cotação'}
-          </button>
+          <div className="budget-form-actions">
+            <button className="btn btn-primary" type="submit" disabled={salvando}>
+              {salvando ? 'Salvando...' : 'Adicionar cotação'}
+            </button>
+          </div>
         </form>
       </div>
     </details>

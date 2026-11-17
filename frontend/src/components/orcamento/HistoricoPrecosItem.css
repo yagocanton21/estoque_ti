@@ -1,0 +1,574 @@
+/* ==========================================================================
+   Histórico & Comparador de Preços de Orçamentos (Lista Consolidada por Pedido)
+   ========================================================================== */
+
+.price-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.price-history-container.compact {
+  gap: 0.85rem;
+}
+
+/* Barra de Pesquisa */
+.price-history-search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--glass-border);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+}
+
+.price-search-form {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.price-search-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.price-search-input-wrapper .search-icon {
+  position: absolute;
+  left: 0.9rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.price-search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 2.4rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-main);
+  font-size: 0.92rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.price-search-input:focus {
+  outline: none;
+  border-color: var(--accent-secondary);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  line-height: 1;
+}
+
+.clear-search-btn:hover {
+  color: var(--text-main);
+}
+
+.price-search-btn {
+  padding: 0 1.5rem;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* KPIs de Resumo de Preços */
+.price-history-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.price-kpi-card {
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.price-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.price-kpi-card.best-price::before {
+  background: var(--accent-success);
+}
+
+.price-kpi-card.last-price::before {
+  background: #38bdf8;
+}
+
+.price-kpi-card.average-price::before {
+  background: #a855f7;
+}
+
+.kpi-title {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.kpi-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.kpi-sub strong {
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   Lista Consolidada de Pedidos (1 item por pedido)
+   ========================================================================== */
+.orders-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.orders-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.order-history-card {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.order-history-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.order-history-card.is-expanded {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Cabeçalho do Card (Clicável) */
+.order-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem 1.35rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.order-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1 1 auto;
+}
+
+.order-date-status {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.order-date {
+  color: var(--text-muted);
+}
+
+.order-status-badge {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.order-status-badge.status-delivered {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.order-status-badge.status-bought {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.order-status-badge.status-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.order-product-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.order-product-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.order-quantity-tag {
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* Lado Direito do Cabeçalho */
+.order-summary-side {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.order-winner-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.winner-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.winner-supplier {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.winner-price {
+  font-size: 0.88rem;
+  color: #34d399;
+  font-weight: 700;
+}
+
+.order-badges-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.order-quotes-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.order-pdf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.order-pdf-badge.has-pdf {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.order-pdf-badge.no-pdf {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.order-chevron-icon {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Painel Expansível de Detalhes (As 3 Cotações e PDF)
+   ========================================================================== */
+.order-details-panel {
+  padding: 1.25rem 1.35rem 1.5rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.order-details-header h5 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.btn-view-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Grid das Cotações */
+.order-quotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.quote-card-item {
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.quote-card-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.quote-card-item.is-winner {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.quote-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quote-option-num {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.quote-winner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.quote-supplier-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.quote-values-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.quote-value-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+}
+
+.quote-value-line strong {
+  color: var(--text-main);
+}
+
+.quote-value-line.total {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.quote-value-line.total strong {
+  color: #6ee7b7;
+  font-size: 1rem;
+}
+
+.quote-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.btn-store-link {
+  color: #60a5fa;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.btn-store-link:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.btn-reuse-quote {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background: rgba(0, 85, 255, 0.15);
+  border: 1px solid rgba(0, 85, 255, 0.35);
+  color: #93c5fd;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reuse-quote:hover {
+  background: rgba(0, 85, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .order-summary-side {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .order-winner-preview {
+    align-items: flex-start;
+  }
+}
+
+/* Estados de feedback */
+.price-history-loading,
+.price-history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--glass-border);
+  border-radius: 10px;
+  gap: 0.5rem;
+}
+
+.price-history-error {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 0.88rem;
+}
+
+/* Paginação do Histórico */
+.history-pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.history-pagination .pagination-info {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}

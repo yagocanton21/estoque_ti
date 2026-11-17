@@ -90,6 +90,7 @@ def test_persistencia_jwt_secret_key(tmp_path, monkeypatch):
     monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("_", raising=False)
 
     secret_file = tmp_path / "jwt_test.key"
     monkeypatch.setenv("JWT_SECRET_FILE", str(secret_file))

@@ -24,12 +24,14 @@ def _obter_jwt_secret_key() -> str:
         return "test_jwt_secret_key_fixed_for_test_environment_1234567890"
 
     # 3. Arquivo persistido para evitar deslogar usuários ou dessincronizar workers
-    candidatos = []
     if os.getenv("JWT_SECRET_FILE"):
-        candidatos.append(Path(os.environ["JWT_SECRET_FILE"]))
-    candidatos.append(Path("/data/.jwt_secret"))
-    candidatos.append(Path(__file__).resolve().parents[2] / "data" / ".jwt_secret")
-    candidatos.append(Path(__file__).resolve().parents[1] / ".jwt_secret")
+        candidatos = [Path(os.environ["JWT_SECRET_FILE"])]
+    else:
+        candidatos = [
+            Path("/data/.jwt_secret"),
+            Path(__file__).resolve().parents[2] / "data" / ".jwt_secret",
+            Path(__file__).resolve().parents[1] / ".jwt_secret",
+        ]
 
     for arq in candidatos:
         try:

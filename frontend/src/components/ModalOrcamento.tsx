@@ -4,6 +4,7 @@ import type { ItemParaOrcamento, Orcamento } from './orcamento/types';
 import { FormCotacao } from './orcamento/FormCotacao';
 import { FormDadosPdf } from './orcamento/FormDadosPdf';
 import { ListaComparativaCotacoes } from './orcamento/ListaComparativaCotacoes';
+import { HistoricoPrecosItem } from './orcamento/HistoricoPrecosItem';
 import { gerarESalvarPdfOrcamento } from './orcamento/geradorPdfOrcamento';
 import './orcamento/ModalOrcamento.css';
 
@@ -22,6 +23,12 @@ async function buscarOrcamentos(itemId: number): Promise<Orcamento[]> {
 export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcamentoProps) {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [abaAtiva, setAbaAtiva] = useState<'atuais' | 'historico'>('atuais');
+  const [valoresReaproveitados, setValoresReaproveitados] = useState<{
+    fornecedor: string;
+    link: string | null;
+  } | null>(null);
+
   const [cidade, setCidade] = useState('Bom Jesus dos Perdões');
   const [solicitante, setSolicitante] = useState('Yago');
   const [destinatario, setDestinatario] = useState('Julia / Katia');
@@ -77,6 +84,7 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
     try {
       await axios.post(`/api/lista-compras/${item.id}/orcamentos`, dados);
       onSuccess(`Orçamento de ${dados.fornecedor} adicionado.`);
+      setValoresReaproveitados(null);
       await atualizarOrcamentos();
     } catch (error: any) {
       notificarErro(error.response?.data?.detail || 'Erro ao adicionar orçamento.');
@@ -112,6 +120,12 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
     } finally {
       setProcessandoId(null);
     }
+  };
+
+  const handleReaproveitar = (fornecedor: string, link: string | null) => {
+    setValoresReaproveitados({ fornecedor, link });
+    setAbaAtiva('atuais');
+    onSuccess(`Dados de "${fornecedor}" preenchidos na nova cotação.`);
   };
 
   const exportarPDF = async () => {
@@ -151,11 +165,32 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
       >
         <div className="edit-modal-header">
           <div>
-            <span>Quantidade solicitada: {item.quantidade}</span>
+            <span>Quantidade solicitada: {item.quantidade} un.</span>
             <h2 id="budget-modal-title">Orçamentos: {item.nome}</h2>
           </div>
           <button className="modal-close" type="button" onClick={onClose} aria-label="Fechar">
             ×
+          </button>
+        </div>
+
+        {/* Abas do Modal */}
+        <div className="modal-tabs-header">
+          <button
+            type="button"
+            className={`modal-tab-btn ${abaAtiva === 'atuais' ? 'active' : ''}`}
+            onClick={() => setAbaAtiva('atuais')}
+          >
+            <span>Cotações do Pedido</span>
+            {orcamentos.length > 0 && (
+              <span className="modal-tab-badge">{orcamentos.length}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`modal-tab-btn ${abaAtiva === 'historico' ? 'active' : ''}`}
+            onClick={() => setAbaAtiva('historico')}
+          >
+            <span>Histórico de Preços deste Item</span>
           </button>
         </div>
 
@@ -173,50 +208,72 @@ export function ModalOrcamento({ item, onClose, onSuccess, onError }: ModalOrcam
           </div>
         )}
 
-        {carregando ? (
-          <p className="inventory-empty">Carregando orçamentos...</p>
-        ) : orcamentos.length === 0 ? (
-          <p className="inventory-empty">Nenhum orçamento cadastrado para este item.</p>
+        {abaAtiva === 'atuais' ? (
+          <>
+            {carregando ? (
+              <p className="inventory-empty">Carregando orçamentos...</p>
+            ) : orcamentos.length === 0 ? (
+              <div className="budget-empty-notice">
+                <p>Nenhum orçamento cadastrado para este pedido ainda.</p>
+                <small>
+                  Adicione abaixo ou consulte a aba <strong>Histórico de Preços</strong> para reaproveitar cotações anteriores.
+                </small>
+              </div>
+            ) : (
+              <ListaComparativaCotacoes
+                orcamentos={orcamentos}
+                item={item}
+                processandoId={processandoId}
+                onSelecionar={selecionarOrcamento}
+                onDeletar={deletarOrcamento}
+              />
+            )}
+
+            <FormCotacao
+              salvando={salvando}
+              abertoInicial={orcamentos.length === 0 || !!valoresReaproveitados}
+              valoresIniciais={valoresReaproveitados}
+              onAdicionar={handleAdicionarCotacao}
+              onError={notificarErro}
+            />
+
+            <FormDadosPdf
+              cidade={cidade}
+              setCidade={setCidade}
+              solicitante={solicitante}
+              setSolicitante={setSolicitante}
+              destinatario={destinatario}
+              setDestinatario={setDestinatario}
+              assinatura={assinatura}
+              setAssinatura={setAssinatura}
+            />
+          </>
         ) : (
-          <ListaComparativaCotacoes
-            orcamentos={orcamentos}
-            item={item}
-            processandoId={processandoId}
-            onSelecionar={selecionarOrcamento}
-            onDeletar={deletarOrcamento}
-          />
+          <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+            <HistoricoPrecosItem
+              termoInicial={item.nome}
+              itemId={item.item_id}
+              onReaproveitar={handleReaproveitar}
+              compacto={true}
+              mostrarBusca={false}
+            />
+          </div>
         )}
-
-        <FormCotacao
-          salvando={salvando}
-          abertoInicial={orcamentos.length === 0}
-          onAdicionar={handleAdicionarCotacao}
-          onError={notificarErro}
-        />
-
-        <FormDadosPdf
-          cidade={cidade}
-          setCidade={setCidade}
-          solicitante={solicitante}
-          setSolicitante={setSolicitante}
-          destinatario={destinatario}
-          setDestinatario={setDestinatario}
-          assinatura={assinatura}
-          setAssinatura={setAssinatura}
-        />
 
         <div className="edit-modal-actions">
           <button type="button" className="btn btn-outline" onClick={onClose}>
             Fechar
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={exportarPDF}
-            disabled={orcamentos.length === 0 || exportandoPdf}
-          >
-            {exportandoPdf ? 'Salvando PDF...' : 'Salvar e baixar PDF'}
-          </button>
+          {abaAtiva === 'atuais' && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={exportarPDF}
+              disabled={orcamentos.length === 0 || exportandoPdf}
+            >
+              {exportandoPdf ? 'Salvando PDF...' : 'Salvar e baixar PDF'}
+            </button>
+          )}
         </div>
       </section>
     </div>

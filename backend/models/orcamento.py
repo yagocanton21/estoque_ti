@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, Numeric, String, text
+from datetime import datetime, timezone
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, Numeric, String, text
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -22,5 +23,11 @@ class Orcamento(Base):
     frete = Column(Numeric(12, 2), nullable=False, default=0)
     link = Column(String, nullable=True)
     selecionado = Column(Boolean, nullable=False, default=False)
+    data_cotacao = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=text("CURRENT_TIMESTAMP"),
+    )
 
     lista_compras = relationship("ListaCompras", back_populates="orcamentos")

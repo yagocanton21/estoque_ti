@@ -238,3 +238,73 @@
     grid-column: 1 / -1;
   }
 }
+
+
+/* ==========================================================================
+   Abas do Modal de Orçamento
+   ========================================================================== */
+.modal-tabs-header {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.modal-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 0.85rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px 6px 0 0;
+}
+
+.modal-tab-btn.active {
+  color: #60a5fa;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
+.modal-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.budget-empty-notice {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed var(--glass-border);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.budget-empty-notice p {
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+
+.budget-empty-notice small {
+  color: var(--text-muted);
+}
