@@ -113,16 +113,22 @@ def buscar_historico_orcamentos(
     permitindo comparar preços históricos com ou sem cadastro no estoque,
     com suporte à paginação de pedidos.
     """
+    termo_str = termo if isinstance(termo, str) else None
+    item_id_int = item_id if isinstance(item_id, int) else None
+    pagina_int = pagina if isinstance(pagina, int) else 1
+    tamanho_pagina_int = tamanho_pagina if isinstance(tamanho_pagina, int) else 10
+    limite_int = limite if isinstance(limite, int) else 500
+
     consulta = (
         db.query(Orcamento, ListaCompras)
         .join(ListaCompras, Orcamento.lista_compras_id == ListaCompras.id)
     )
 
     filtros = []
-    if item_id is not None:
-        filtros.append(ListaCompras.item_id == item_id)
-    if termo and termo.strip():
-        termo_limpo = f"%{termo.strip()}%"
+    if item_id_int is not None:
+        filtros.append(ListaCompras.item_id == item_id_int)
+    if termo_str and termo_str.strip():
+        termo_limpo = f"%{termo_str.strip()}%"
         filtros.append(ListaCompras.nome.ilike(termo_limpo))
 
     if filtros:
@@ -130,7 +136,7 @@ def buscar_historico_orcamentos(
 
     # Ordena pelo mais recente
     consulta = consulta.order_by(Orcamento.data_cotacao.desc(), Orcamento.id.desc())
-    resultados = consulta.limit(limite).all()
+    resultados = consulta.limit(limite_int).all()
 
     cotacoes: list[ItemHistoricoOrcamento] = []
     pedidos_dict: dict[int, PedidoHistoricoOrcamento] = {}
@@ -205,7 +211,7 @@ def buscar_historico_orcamentos(
             p.preco_total_vencedor = melhor.preco_total
 
     # Cálculo de estatísticas comparativas (apenas quando há filtro de termo ou item_id)
-    tem_filtro = bool((termo and termo.strip()) or item_id is not None)
+    tem_filtro = bool((termo_str and termo_str.strip()) or item_id_int is not None)
     if tem_filtro and cotacoes:
         menor_cotacao = min(cotacoes, key=lambda c: c.preco_unitario)
         menor_preco = menor_cotacao.preco_unitario
@@ -236,16 +242,16 @@ def buscar_historico_orcamentos(
         estatisticas = EstatisticasHistorico(total_cotacoes=0, total_pedidos=0)
 
     total_pedidos = len(pedidos_lista)
-    total_paginas = max(1, math.ceil(total_pedidos / tamanho_pagina))
-    inicio = (pagina - 1) * tamanho_pagina
-    fim = inicio + tamanho_pagina
+    total_paginas = max(1, math.ceil(total_pedidos / tamanho_pagina_int))
+    inicio = (pagina_int - 1) * tamanho_pagina_int
+    fim = inicio + tamanho_pagina_int
     pedidos_paginados = pedidos_lista[inicio:fim]
 
     return HistoricoOrcamentosResponse(
-        termo=termo,
-        item_id=item_id,
-        pagina=pagina,
-        tamanho_pagina=tamanho_pagina,
+        termo=termo_str,
+        item_id=item_id_int,
+        pagina=pagina_int,
+        tamanho_pagina=tamanho_pagina_int,
         total_pedidos=total_pedidos,
         total_paginas=total_paginas,
         estatisticas=estatisticas,
