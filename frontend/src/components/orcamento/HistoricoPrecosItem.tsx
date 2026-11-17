@@ -3,6 +3,7 @@ import axios from 'axios';
 import type { HistoricoOrcamentosResponse, PedidoHistoricoOrcamento } from './types';
 import { formatarMoeda } from './types';
 import { formatarData } from '../../utils/formatters';
+import { obterToken } from '../../services/auth';
 import './HistoricoPrecosItem.css';
 
 interface HistoricoPrecosItemProps {
@@ -81,6 +82,23 @@ export function HistoricoPrecosItem({
   const mudarPagina = (novaPagina: number) => {
     setPagina(novaPagina);
     carregarHistorico(busca, itemId, novaPagina);
+  };
+
+  const handleVisualizarPdf = async (e: React.MouseEvent, listaComprasId: number) => {
+    e.preventDefault();
+    try {
+      const res = await axios.get(`/api/lista-compras/${listaComprasId}/pdf`, {
+        responseType: 'blob',
+      });
+      const file = new Blob([res.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, '_blank');
+    } catch (err) {
+      console.warn('Falha no download direto por Blob, abrindo link com token:', err);
+      const token = obterToken();
+      const url = `/api/lista-compras/${listaComprasId}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+      window.open(url, '_blank');
+    }
   };
 
   const stats = dados?.estatisticas;
@@ -323,7 +341,8 @@ export function HistoricoPrecosItem({
                         <div className="order-details-actions">
                           {pedido.tem_pdf && (
                             <a
-                              href={`/api/lista-compras/${pedido.lista_compras_id}/pdf`}
+                              href={`/api/lista-compras/${pedido.lista_compras_id}/pdf${obterToken() ? `?token=${encodeURIComponent(obterToken()!)}` : ''}`}
+                              onClick={(e) => handleVisualizarPdf(e, pedido.lista_compras_id)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="btn btn-primary btn-view-pdf"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FeedbackMessage, type Feedback } from './FeedbackMessage';
 import { formatarData, formatarMoeda } from '../utils/formatters';
+import { obterToken } from '../services/auth';
 import './HistoricoCompras.css';
 
 interface ListaComprasItem {
@@ -103,6 +104,23 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
   const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
   const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
 
+  const handleVisualizarPdf = async (e: React.MouseEvent, itemId: number) => {
+    e.preventDefault();
+    try {
+      const res = await axios.get(`/api/lista-compras/${itemId}/pdf`, {
+        responseType: 'blob',
+      });
+      const file = new Blob([res.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, '_blank');
+    } catch (err) {
+      console.warn('Falha no download direto por Blob, abrindo link com token:', err);
+      const token = obterToken();
+      const url = `/api/lista-compras/${itemId}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <>
       <div className="page-action-header">
@@ -201,7 +219,8 @@ export function HistoricoCompras({ onNavigate }: HistoricoComprasProps) {
                     {item.tem_pdf && (
                       <a
                         className="btn btn-primary"
-                        href={`/api/lista-compras/${item.id}/pdf`}
+                        href={`/api/lista-compras/${item.id}/pdf${obterToken() ? `?token=${encodeURIComponent(obterToken()!)}` : ''}`}
+                        onClick={(e) => handleVisualizarPdf(e, item.id)}
                         target="_blank"
                         rel="noreferrer"
                         title={item.pdf_nome || 'Abrir PDF do orçamento'}

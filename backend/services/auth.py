@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 import logging
@@ -127,19 +127,27 @@ def decodificar_token(token: str) -> Optional[dict]:
 
 
 def obter_usuario_logado(
+    request: Request,
     credenciais: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> str:
     """
-    Dependência FastAPI para verificar se a requisição possui um token JWT válido.
+    Dependência FastAPI para verificar se a requisição possui um token JWT válido,
+    aceitando via header Authorization Bearer ou via query parameter 'token'.
     """
-    if not credenciais or not credenciais.credentials:
+    token_str: Optional[str] = None
+    if credenciais and credenciais.credentials:
+        token_str = credenciais.credentials
+    elif "token" in request.query_params:
+        token_str = request.query_params.get("token")
+
+    if not token_str:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Acesso não autorizado. Faça login para continuar.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    payload = decodificar_token(credenciais.credentials)
+    payload = decodificar_token(token_str)
     if not payload or "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

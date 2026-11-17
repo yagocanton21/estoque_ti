@@ -1,3 +1,5 @@
+from services.auth import criar_token_acesso
+
 def test_login_sucesso(client):
     resposta = client.post(
         "/auth/login",
@@ -103,3 +105,14 @@ def test_persistencia_jwt_secret_key(tmp_path, monkeypatch):
     # Segunda chamada deve reutilizar deterministicamente a mesma chave
     chave2 = _obter_jwt_secret_key()
     assert chave1 == chave2
+
+
+def test_autenticacao_via_query_param_token(unauthenticated_client):
+    token, _ = criar_token_acesso("admin_teste")
+    # Sem token -> 401
+    resp_sem = unauthenticated_client.get("/itens/")
+    assert resp_sem.status_code == 401
+
+    # Com token na query string (?token=...) -> 200 OK
+    resp_com = unauthenticated_client.get(f"/itens/?token={token}")
+    assert resp_com.status_code == 200
