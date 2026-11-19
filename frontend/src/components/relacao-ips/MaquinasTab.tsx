@@ -4,6 +4,7 @@ import { FeedbackMessage, type Feedback } from '../FeedbackMessage';
 import type { Maquina, EstatisticasIps, MaquinaFormDados } from './types';
 import { ModalMaquina } from './ModalMaquina';
 import { ModalImportarPlanilha } from './ModalImportarPlanilha';
+import { ModalPing } from './ModalPing';
 import { KpisMaquinas } from './KpisMaquinas';
 import { FiltrosMaquinas } from './FiltrosMaquinas';
 import { CardMaquina } from './CardMaquina';
@@ -48,6 +49,7 @@ export function MaquinasTab() {
   const [salvando, setSalvando] = useState(false);
 
   const [modalImportarAberta, setModalImportarAberta] = useState(false);
+  const [maquinaPing, setMaquinaPing] = useState<{ nome: string; ip: string } | null>(null);
   const [ipCopiadoId, setIpCopiadoId] = useState<number | null>(null);
 
   const carregarMetadados = useCallback(async () => {
@@ -266,6 +268,7 @@ export function MaquinasTab() {
               maquina={m}
               ipCopiadoId={ipCopiadoId}
               onCopiarIp={handleCopiarIp}
+              onPing={(nome, ip) => setMaquinaPing({ nome, ip })}
               onEditar={(item) => {
                 setMaquinaEmEdicao(item);
                 setModalAberta(true);
@@ -355,6 +358,14 @@ export function MaquinasTab() {
             carregarMaquinas(1);
             carregarMetadados();
           }}
+        />
+      )}
+
+      {maquinaPing && (
+        <ModalPing
+          nome={maquinaPing.nome}
+          ip={maquinaPing.ip}
+          onClose={() => setMaquinaPing(null)}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FeedbackMessage, type Feedback } from '../FeedbackMessage';
 import type { Equipamento, EquipamentoFormDados, TipoEquipamento } from './types';
 import { ModalEquipamento } from './ModalEquipamento';
+import { ModalPing } from './ModalPing';
 import { CardEquipamento } from './CardEquipamento';
 import './CardMaquina.css';
 
@@ -29,6 +30,7 @@ export function EquipamentosTab({ tipo, onAlterado }: EquipamentosTabProps) {
   const [carregando, setCarregando] = useState(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [ipCopiadoId, setIpCopiadoId] = useState<number | null>(null);
+  const [equipamentoPing, setEquipamentoPing] = useState<{ nome: string; ip: string } | null>(null);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [emEdicao, setEmEdicao] = useState<Equipamento | null>(null);
@@ -244,6 +246,7 @@ export function EquipamentosTab({ tipo, onAlterado }: EquipamentosTabProps) {
               equipamento={eq}
               ipCopiadoId={ipCopiadoId}
               onCopiarIp={copiarIp}
+              onPing={(nome, ip) => setEquipamentoPing({ nome, ip })}
               onEditar={abrirEdicao}
               onExcluir={excluir}
             />
@@ -274,6 +277,14 @@ export function EquipamentosTab({ tipo, onAlterado }: EquipamentosTabProps) {
         onClose={() => setModalAberto(false)}
         onSalvar={salvar}
       />
+
+      {equipamentoPing && (
+        <ModalPing
+          nome={equipamentoPing.nome}
+          ip={equipamentoPing.ip}
+          onClose={() => setEquipamentoPing(null)}
+        />
+      )}
     </div>
   );
 }

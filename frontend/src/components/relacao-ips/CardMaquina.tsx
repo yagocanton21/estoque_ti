@@ -4,6 +4,7 @@ interface CardMaquinaProps {
   maquina: Maquina;
   ipCopiadoId: number | null;
   onCopiarIp: (ip: string, id: number) => void;
+  onPing?: (nome: string, ip: string) => void;
   onEditar: (m: Maquina) => void;
   onExcluir: (m: Maquina) => void;
 }
@@ -40,6 +41,7 @@ export function CardMaquina({
   maquina: m,
   ipCopiadoId,
   onCopiarIp,
+  onPing,
   onEditar,
   onExcluir,
 }: CardMaquinaProps) {
@@ -52,17 +54,43 @@ export function CardMaquina({
           {m.nome_maquina}
         </strong>
         {m.ip ? (
-          <button
-            type="button"
-            className="ip-badge-button"
-            onClick={() => onCopiarIp(m.ip!, m.id)}
-            title="Clique para copiar o IP"
-          >
-            <code>{m.ip}</code>
-            <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>
-              {ipCopiadoId === m.id ? '✓ copiado' : '📋'}
-            </span>
-          </button>
+          <div className="ml-ip-group">
+            <button
+              type="button"
+              className="ip-badge-button"
+              onClick={() => onCopiarIp(m.ip!, m.id)}
+              title="Clique para copiar o IP"
+            >
+              <code>{m.ip}</code>
+              <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>
+                {ipCopiadoId === m.id ? '✓ copiado' : '📋'}
+              </span>
+            </button>
+            {onPing && (
+              <button
+                type="button"
+                className="ping-badge-button"
+                onClick={() => onPing(m.nome_maquina, m.ip!)}
+                title={`Disparar teste de ping contínuo em ${m.ip}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="4 17 10 11 4 5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                Ping
+              </button>
+            )}
+          </div>
         ) : (
           <span className="ml-muted">Sem IP</span>
         )}

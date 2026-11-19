@@ -4,6 +4,7 @@ interface CardEquipamentoProps {
   equipamento: Equipamento;
   ipCopiadoId: number | null;
   onCopiarIp: (ip: string, id: number) => void;
+  onPing?: (nome: string, ip: string) => void;
   onEditar: (eq: Equipamento) => void;
   onExcluir: (eq: Equipamento) => void;
 }
@@ -12,6 +13,7 @@ export function CardEquipamento({
   equipamento: eq,
   ipCopiadoId,
   onCopiarIp,
+  onPing,
   onEditar,
   onExcluir,
 }: CardEquipamentoProps) {
@@ -20,17 +22,43 @@ export function CardEquipamento({
       <div className="ml-cell ml-machine">
         <strong className="ml-hostname">{eq.nome}</strong>
         {eq.ip ? (
-          <button
-            type="button"
-            className="ip-badge-button"
-            onClick={() => onCopiarIp(eq.ip!, eq.id)}
-            title="Clique para copiar o IP"
-          >
-            <code>{eq.ip}</code>
-            <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>
-              {ipCopiadoId === eq.id ? '✓ copiado' : '📋'}
-            </span>
-          </button>
+          <div className="ml-ip-group">
+            <button
+              type="button"
+              className="ip-badge-button"
+              onClick={() => onCopiarIp(eq.ip!, eq.id)}
+              title="Clique para copiar o IP"
+            >
+              <code>{eq.ip}</code>
+              <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>
+                {ipCopiadoId === eq.id ? '✓ copiado' : '📋'}
+              </span>
+            </button>
+            {onPing && (
+              <button
+                type="button"
+                className="ping-badge-button"
+                onClick={() => onPing(eq.nome, eq.ip!)}
+                title={`Disparar teste de ping contínuo em ${eq.ip}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="4 17 10 11 4 5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                Ping
+              </button>
+            )}
+          </div>
         ) : (
           <span className="ml-muted">Sem IP</span>
         )}

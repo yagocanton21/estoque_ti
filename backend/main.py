@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
-from routers import itens, movimentacoes, lista_compras, emprestimos, relacao_ips, equipamentos, backups, auth
+from routers import itens, movimentacoes, lista_compras, emprestimos, relacao_ips, equipamentos, backups, auth, diagnostico
 from services.auth import obter_usuario_logado
 from services.backups import iniciar_verificacao_periodica, parar_verificacao_periodica
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,5 +44,6 @@ app.include_router(lista_compras.router, dependencies=auth_guard)
 app.include_router(emprestimos.router, dependencies=auth_guard)
 app.include_router(relacao_ips.router, dependencies=auth_guard)
 app.include_router(equipamentos.router, dependencies=auth_guard)
+app.include_router(diagnostico.router, dependencies=auth_guard)
 app.include_router(backups.router)
 app.include_router(auth.router)
